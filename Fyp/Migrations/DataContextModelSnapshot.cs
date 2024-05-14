@@ -258,9 +258,6 @@ namespace Fyp.Migrations
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CommunityId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -283,21 +280,25 @@ namespace Fyp.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PreCommunityId")
+                    b.Property<int>("PrecommunityId")
                         .HasColumnType("int");
 
                     b.Property<string>("ProfilePath")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("School")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("VerificationCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("PreCommunityId");
+                    b.HasIndex("PrecommunityId");
 
                     b.ToTable("users");
                 });
@@ -472,7 +473,7 @@ namespace Fyp.Migrations
                 {
                     b.HasOne("Fyp.Models.PreCommunity", "PreCommunity")
                         .WithMany("Users")
-                        .HasForeignKey("PreCommunityId")
+                        .HasForeignKey("PrecommunityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

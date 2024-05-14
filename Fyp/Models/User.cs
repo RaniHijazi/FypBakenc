@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Fyp.Models
 {
@@ -14,10 +15,12 @@ namespace Fyp.Models
         public int Age { get; set; }
         public string? School { get; set; }
         public string? PhoneNumber { get; set; }
-        public string? Role { get; set; }
-        public DateTime JoinDate { get; set; }  
-
-        public int CommunityId { get; set; }
+        public string Role { get; set; }
+        public string? VerificationCode { get; set; }
+        public DateTime JoinDate { get; set; }
+        [ForeignKey("PreCommunityId")]
+        public int PrecommunityId { get; set; }
+        
         [JsonIgnore]
         public PreCommunity PreCommunity { get; set; }
         [JsonIgnore]
