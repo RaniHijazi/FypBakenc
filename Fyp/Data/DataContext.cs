@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
     }
     public DbSet<User> users { get; set; }
     public DbSet<PreCommunity> pre_communities  { get; set; }
-    public DbSet<PreSubCommunity> pe_sub_communities { get; set; }
+    public DbSet<PreSubCommunity> pre_sub_communities { get; set; }
     public DbSet<UserSubCommunity> user_sub_communities { get; set; }
     public DbSet<Document> documents { get; set; }
     public DbSet<Like> likes { get; set; }
