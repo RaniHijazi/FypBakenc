@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fyp.Repository
 {
-    public class PostRepository
+    public class PostRepository:IPostRepository
     {
         private readonly DataContext _context;
 
@@ -16,7 +16,7 @@ namespace Fyp.Repository
         public async Task CreatePrePost(int user_id,int precommunity_id,PostDto dto)
         {
             var user=await _context.users.FindAsync(user_id);
-            var precommunityId=await _context.pre_communities.FindAsync(user_id);
+            var precommunityId=await _context.pre_communities.FindAsync(precommunity_id);
 
             if (user == null)
             {
@@ -47,6 +47,44 @@ namespace Fyp.Repository
 
         }
 
+        public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto)
+        {
+            var user = await _context.users.FindAsync(user_id);
+            var preCommunity = await _context.pre_communities.FindAsync(precommunity_id);
+            var preSubCommunity = await _context.pre_sub_communities.FindAsync(presubcommunity_id);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (preCommunity == null)
+            {
+                throw new InvalidOperationException("Community not found");
+            }
+
+            if (preSubCommunity == null)
+            {
+                throw new InvalidOperationException("Subcommunity not found");
+            }
+
+            var prepost = new Post
+            {
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
+                LikesCount = 0,
+                CommentsCount = 0,
+                ShareCount = 0,
+                Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                UserId = user_id,
+                PreCommunityId = precommunity_id,
+                PreSubCommunityId = presubcommunity_id
+            };
+
+            _context.posts.Add(prepost);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task DeletePost(int post_id)
         {
             var post=await _context.posts.FindAsync(post_id);
@@ -57,7 +95,7 @@ namespace Fyp.Repository
             _context.posts.Remove(post);
                 await _context.SaveChangesAsync();
         }
-        private string CalculateTimeAgo(DateTime timestamp)
+        private static string CalculateTimeAgo(DateTime timestamp)
         {
             TimeSpan timeDifference = DateTime.UtcNow - timestamp;
 
@@ -79,9 +117,10 @@ namespace Fyp.Repository
             }
         }
 
-        public async Task<List<GetPostDto>> GetPrePosts()
+        public async Task<List<GetPostDto>> GetPrePosts(int PreCommunityId)
         {
             var posts = await _context.posts
+                .Where(p => p.PreCommunityId == PreCommunityId)
                 .Select(p => new GetPostDto
                 {
                     Description = p.Description,
@@ -96,28 +135,78 @@ namespace Fyp.Repository
             return posts;
         }
 
-        public async Task LikePost(int post_id,int user_id)
+        public async Task<List<GetPostDto>> GetPreSubPosts(int PreCommunityId, int subCommunityId)
         {
+            var posts = await _context.posts
+                .Where(p => p.PreCommunityId == PreCommunityId && p.PreSubCommunityId == subCommunityId)
+                .Select(p => new GetPostDto
+                {
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
+                    LikesCount = p.LikesCount,
+                    CommentsCount = p.CommentsCount,
+                    ShareCount = p.ShareCount,
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp))
+                })
+                .ToListAsync();
+
+            return posts;
+        }
+
+
+        public async Task LikePost(int post_id, int user_id)
+        {
+            var existingLike = await _context.likes.FirstOrDefaultAsync(l => l.PostId == post_id && l.UserId == user_id);
+            if (existingLike != null)
+            {
+                throw new InvalidOperationException("User has already liked this post");
+            }
+
             var post = await _context.posts.FindAsync(post_id);
             if (post == null)
             {
                 throw new InvalidOperationException("Post not found");
             }
+
             post.LikesCount += 1;
 
             var like = new Like
             {
                 PostId = post_id,
-                UserId=user_id,
-
+                UserId = user_id,
             };
 
             _context.likes.Add(like);
             await _context.SaveChangesAsync();
-
         }
+
+        public async Task DislikePost(int post_id, int user_id)
+        {
+            var like = await _context.likes.FirstOrDefaultAsync(l => l.PostId == post_id && l.UserId == user_id);
+            if (like == null)
+            {
+                throw new InvalidOperationException("Like not found");
+            }
+
+            var post = await _context.posts.FindAsync(post_id);
+            if (post == null)
+            {
+                throw new InvalidOperationException("Post not found");
+            }
+
+            post.LikesCount -= 1;
+
+            _context.likes.Remove(like);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task LikeComment(int comment_id,int user_id)
         {
+            var existingLike = await _context.likes.FirstOrDefaultAsync(l => l.CommentId== comment_id && l.UserId == user_id);
+            if (existingLike != null)
+            {
+                throw new InvalidOperationException("User has already liked this comment");
+            }
             var comment = await _context.posts.FindAsync(comment_id);
             if (comment == null)
             {
@@ -135,6 +224,26 @@ namespace Fyp.Repository
             _context.likes.Add(like);
             await _context.SaveChangesAsync();
 
+        }
+
+        public async Task DislikeComment(int comment_id, int user_id)
+        {
+            var like = await _context.likes.FirstOrDefaultAsync(l => l.CommentId == comment_id && l.UserId == user_id);
+            if (like == null)
+            {
+                throw new InvalidOperationException("Like not found");
+            }
+
+            var comment = await _context.comments.FindAsync(comment_id);
+            if (comment == null)
+            {
+                throw new InvalidOperationException("Comment not found");
+            }
+
+            comment.LikesCount -= 1;
+
+            _context.likes.Remove(like);
+            await _context.SaveChangesAsync();
         }
 
         public async Task CommentOnPost(int post_id,int user_id,CommentDto dto)
@@ -159,6 +268,26 @@ namespace Fyp.Repository
             _context.comments.Add(comment);
             await _context.SaveChangesAsync();
 
+        }
+
+        public async Task DeleteComment(int comment_id)
+        {
+            var comment = await _context.comments.FindAsync(comment_id);
+            if (comment == null)
+            {
+                throw new InvalidOperationException("Comment not found");
+            }
+
+            var post = await _context.posts.FindAsync(comment.PostId);
+            if (post == null)
+            {
+                throw new InvalidOperationException("Post associated with the comment not found");
+            }
+
+            post.CommentsCount -= 1;
+
+            _context.comments.Remove(comment);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<int> PostLikesNb(int post_id)

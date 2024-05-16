@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Fyp.Repository
 {
-    public class PreCommunityRepository
+    public class PreCommunityRepository: IPreCommunityRepository
     {
         private readonly DataContext _context;
 
@@ -86,15 +86,17 @@ namespace Fyp.Repository
             var sub=await _context.pre_sub_communities.FindAsync(subCommunityId);
             if (sub==null)
             {
-                throw new InvalidOperationException("communitynot found");
+                throw new InvalidOperationException("community not found");
             }
             _context.pre_sub_communities.Remove(sub);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<PreSubCommunity>> GetPreSubCommunities()
+        public async Task<List<PreSubCommunity>> GetPreSubCommunities(int preCommunityId)
         {
-            var sub_communities=await _context.pre_sub_communities.ToListAsync();
+            var sub_communities = await _context.pre_sub_communities
+                                            .Where(sub => sub.PreCommunityID == preCommunityId)
+                                            .ToListAsync();
 
             return sub_communities;
         }

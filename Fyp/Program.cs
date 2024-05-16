@@ -22,6 +22,10 @@ services.AddEndpointsApiExplorer();
 
 
 services.AddScoped<IUserRepository, UserRepository>();
+
+services.AddScoped<IPreCommunityRepository, PreCommunityRepository>();
+
+services.AddScoped<IPostRepository, PostRepository>();
 services.AddTransient<IEmailRepository, EmailRepository>();
 
 builder.Services.AddSwaggerGen(options =>
