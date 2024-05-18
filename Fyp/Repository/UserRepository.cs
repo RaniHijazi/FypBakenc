@@ -49,7 +49,8 @@ namespace Fyp.Repository
             }
 
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            int preCommunityId = 1;
+            
+            int CommunityId = isUAEduLbEmail ? 2 : 1;
 
             var newUser = new User
             {
@@ -60,7 +61,7 @@ namespace Fyp.Repository
                 Age = dto.Age,
                 JoinDate = DateTime.Now,
                 Role = role, 
-                PrecommunityId = preCommunityId,
+                CommunityId = CommunityId,
             };
 
             _context.users.Add(newUser);
@@ -118,7 +119,45 @@ namespace Fyp.Repository
             return true;
         }
 
-        
+        public async Task FollowUserAsync(int followerId, int followedId)
+        {
+            if (followerId == followedId)
+                throw new InvalidOperationException("A user cannot follow themselves.");
+
+            var follow = new Follow
+            {
+                FollowerId = followerId,
+                FollowedId = followedId,
+                FollowedDate = DateTime.UtcNow
+            };
+
+            _context.Follows.Add(follow);
+            var userToFollow = await _context.users.FindAsync(followedId);
+            userToFollow.TotalFollowers++;
+
+            var followerUser = await _context.users.FindAsync(followerId);
+            followerUser.TotalFollowing++;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UnfollowUserAsync(int followerId, int followedId)
+        {
+            var follow = await _context.Follows
+                .FirstOrDefaultAsync(f => f.FollowerId == followerId && f.FollowedId == followedId);
+
+            if (follow != null)
+            {
+                _context.Follows.Remove(follow);
+                var userToUnfollow = await _context.users.FindAsync(followedId);
+                userToUnfollow.TotalFollowers--;
+
+                var followerUser = await _context.users.FindAsync(followerId);
+                followerUser.TotalFollowing--;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+
 
 
 

@@ -10,6 +10,6 @@ namespace Fyp.Models
         public User User { get; set; }
         public int SubCommunityId { get; set; }
         [JsonIgnore]
-        public PreSubCommunity SubCommunity { get; set; }
+        public SubCommunity SubCommunity { get; set; }
     }
 }

@@ -15,12 +15,12 @@ namespace Fyp.Models
         public int UserId { get; set; }
         [JsonIgnore]
         public User User { get; set; }
-        public int? PreCommunityId { get; set; }
+        public int? CommunityId { get; set; }
         [JsonIgnore]
-        public PreCommunity? PreCommunity { get; set; }
-        public int? PreSubCommunityId { get; set; }
+        public Community? Community { get; set; }
+        public int? SubCommunityId { get; set; }
         [JsonIgnore]
-        public PreSubCommunity? PreSubCommunity { get; set; }
+        public SubCommunity? SubCommunity { get; set; }
         [JsonIgnore]
         public ICollection<Comment> Comments { get; set; }
         [JsonIgnore]

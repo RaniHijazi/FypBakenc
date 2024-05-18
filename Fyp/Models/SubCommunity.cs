@@ -1,15 +1,17 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Fyp.Models
 {
-    public class PreSubCommunity
+    public class SubCommunity
     {
         public int ID { get; set; }
         public string Name { get; set; }
-        public int PreCommunityID { get; set; }
+        [ForeignKey("MainCommunity")]
+        public int CommunityID { get; set; }
 
         [JsonIgnore]
-        public PreCommunity MainCommunity { get; set; }
+        public Community MainCommunity { get; set; }
 
         [JsonIgnore]
         public ICollection<UserSubCommunity> UserSubCommunities { get; set; }

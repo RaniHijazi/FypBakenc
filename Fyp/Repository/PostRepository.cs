@@ -16,7 +16,7 @@ namespace Fyp.Repository
         public async Task CreatePrePost(int user_id,int precommunity_id,PostDto dto)
         {
             var user=await _context.users.FindAsync(user_id);
-            var precommunityId=await _context.pre_communities.FindAsync(precommunity_id);
+            var precommunityId=await _context.communities.FindAsync(precommunity_id);
 
             if (user == null)
             {
@@ -39,7 +39,7 @@ namespace Fyp.Repository
                 ShareCount=0,
                 Timestamp= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 UserId=user_id,
-                PreCommunityId=precommunity_id
+                CommunityId=precommunity_id
             };
 
              _context.posts.Add(prepost);
@@ -50,8 +50,8 @@ namespace Fyp.Repository
         public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto)
         {
             var user = await _context.users.FindAsync(user_id);
-            var preCommunity = await _context.pre_communities.FindAsync(precommunity_id);
-            var preSubCommunity = await _context.pre_sub_communities.FindAsync(presubcommunity_id);
+            var preCommunity = await _context.communities.FindAsync(precommunity_id);
+            var preSubCommunity = await _context.sub_communities.FindAsync(presubcommunity_id);
 
             if (user == null)
             {
@@ -77,8 +77,8 @@ namespace Fyp.Repository
                 ShareCount = 0,
                 Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 UserId = user_id,
-                PreCommunityId = precommunity_id,
-                PreSubCommunityId = presubcommunity_id
+                CommunityId = precommunity_id,
+                SubCommunityId = presubcommunity_id
             };
 
             _context.posts.Add(prepost);
@@ -120,7 +120,7 @@ namespace Fyp.Repository
         public async Task<List<GetPostDto>> GetPrePosts(int PreCommunityId)
         {
             var posts = await _context.posts
-                .Where(p => p.PreCommunityId == PreCommunityId)
+                .Where(p => p.CommunityId == PreCommunityId)
                 .Select(p => new GetPostDto
                 {
                     Description = p.Description,
@@ -138,7 +138,7 @@ namespace Fyp.Repository
         public async Task<List<GetPostDto>> GetPreSubPosts(int PreCommunityId, int subCommunityId)
         {
             var posts = await _context.posts
-                .Where(p => p.PreCommunityId == PreCommunityId && p.PreSubCommunityId == subCommunityId)
+                .Where(p => p.CommunityId == PreCommunityId && p.SubCommunityId == subCommunityId)
                 .Select(p => new GetPostDto
                 {
                     Description = p.Description,

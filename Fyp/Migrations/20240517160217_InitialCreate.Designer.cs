@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fyp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240514160355_addverificationcode")]
-    partial class addverificationcode
+    [Migration("20240517160217_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,9 +52,14 @@ namespace Fyp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Content")
-                        .IsRequired()
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LikesCount")
+                        .HasColumnType("int");
 
                     b.Property<int>("PostId")
                         .HasColumnType("int");
@@ -69,6 +74,27 @@ namespace Fyp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("comments");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Community", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("communities");
                 });
 
             modelBuilder.Entity("Fyp.Models.Document", b =>
@@ -179,52 +205,46 @@ namespace Fyp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<string>("Content")
-                        .IsRequired()
+                    b.Property<int>("CommentsCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CommunityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PreCommunityId")
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("LikesCount")
                         .HasColumnType("int");
 
-                    b.Property<int>("PreSubCommunityId")
+                    b.Property<int>("ShareCount")
                         .HasColumnType("int");
+
+                    b.Property<int?>("SubCommunityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Timestamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PreCommunityId");
+                    b.HasIndex("CommunityId");
 
-                    b.HasIndex("PreSubCommunityId");
+                    b.HasIndex("SubCommunityId");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("posts");
                 });
 
-            modelBuilder.Entity("Fyp.Models.PreCommunity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("pre_communities");
-                });
-
-            modelBuilder.Entity("Fyp.Models.PreSubCommunity", b =>
+            modelBuilder.Entity("Fyp.Models.SubCommunity", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -232,18 +252,18 @@ namespace Fyp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"), 1L, 1);
 
+                    b.Property<int>("CommunityID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PreCommunityID")
-                        .HasColumnType("int");
-
                     b.HasKey("ID");
 
-                    b.HasIndex("PreCommunityID");
+                    b.HasIndex("CommunityID");
 
-                    b.ToTable("pe_sub_communities");
+                    b.ToTable("sub_communities");
                 });
 
             modelBuilder.Entity("Fyp.Models.User", b =>
@@ -259,6 +279,9 @@ namespace Fyp.Migrations
 
                     b.Property<string>("Bio")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CommunityId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -282,9 +305,6 @@ namespace Fyp.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PrecommunityId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ProfilePath")
                         .HasColumnType("nvarchar(max)");
 
@@ -300,7 +320,7 @@ namespace Fyp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PrecommunityId");
+                    b.HasIndex("CommunityId");
 
                     b.ToTable("users");
                 });
@@ -435,17 +455,15 @@ namespace Fyp.Migrations
 
             modelBuilder.Entity("Fyp.Models.Post", b =>
                 {
-                    b.HasOne("Fyp.Models.PreCommunity", "PreCommunity")
+                    b.HasOne("Fyp.Models.Community", "Community")
                         .WithMany("Posts")
-                        .HasForeignKey("PreCommunityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("CommunityId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Fyp.Models.PreSubCommunity", "PreSubCommunity")
+                    b.HasOne("Fyp.Models.SubCommunity", "SubCommunity")
                         .WithMany("Posts")
-                        .HasForeignKey("PreSubCommunityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("SubCommunityId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Fyp.Models.User", "User")
                         .WithMany("Posts")
@@ -453,18 +471,18 @@ namespace Fyp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("PreCommunity");
+                    b.Navigation("Community");
 
-                    b.Navigation("PreSubCommunity");
+                    b.Navigation("SubCommunity");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Fyp.Models.PreSubCommunity", b =>
+            modelBuilder.Entity("Fyp.Models.SubCommunity", b =>
                 {
-                    b.HasOne("Fyp.Models.PreCommunity", "MainCommunity")
-                        .WithMany("PreSubCommunities")
-                        .HasForeignKey("PreCommunityID")
+                    b.HasOne("Fyp.Models.Community", "MainCommunity")
+                        .WithMany("SubCommunities")
+                        .HasForeignKey("CommunityID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -473,13 +491,13 @@ namespace Fyp.Migrations
 
             modelBuilder.Entity("Fyp.Models.User", b =>
                 {
-                    b.HasOne("Fyp.Models.PreCommunity", "PreCommunity")
+                    b.HasOne("Fyp.Models.Community", "Community")
                         .WithMany("Users")
-                        .HasForeignKey("PrecommunityId")
+                        .HasForeignKey("CommunityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("PreCommunity");
+                    b.Navigation("Community");
                 });
 
             modelBuilder.Entity("Fyp.Models.UserChatRoom", b =>
@@ -503,7 +521,7 @@ namespace Fyp.Migrations
 
             modelBuilder.Entity("Fyp.Models.UserSubCommunity", b =>
                 {
-                    b.HasOne("Fyp.Models.PreSubCommunity", "SubCommunity")
+                    b.HasOne("Fyp.Models.SubCommunity", "SubCommunity")
                         .WithMany("UserSubCommunities")
                         .HasForeignKey("SubCommunityId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -532,6 +550,15 @@ namespace Fyp.Migrations
                     b.Navigation("Likes");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Community", b =>
+                {
+                    b.Navigation("Posts");
+
+                    b.Navigation("SubCommunities");
+
+                    b.Navigation("Users");
+                });
+
             modelBuilder.Entity("Fyp.Models.Post", b =>
                 {
                     b.Navigation("Comments");
@@ -539,16 +566,7 @@ namespace Fyp.Migrations
                     b.Navigation("Likes");
                 });
 
-            modelBuilder.Entity("Fyp.Models.PreCommunity", b =>
-                {
-                    b.Navigation("Posts");
-
-                    b.Navigation("PreSubCommunities");
-
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("Fyp.Models.PreSubCommunity", b =>
+            modelBuilder.Entity("Fyp.Models.SubCommunity", b =>
                 {
                     b.Navigation("Posts");
 

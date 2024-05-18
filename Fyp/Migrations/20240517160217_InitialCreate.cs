@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fyp.Migrations
 {
-    public partial class InitialCreate2 : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -24,7 +24,7 @@ namespace Fyp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "pre_communities",
+                name: "communities",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -34,25 +34,25 @@ namespace Fyp.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_pre_communities", x => x.Id);
+                    table.PrimaryKey("PK_communities", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "pe_sub_communities",
+                name: "sub_communities",
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PreCommunityID = table.Column<int>(type: "int", nullable: false)
+                    CommunityID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_pe_sub_communities", x => x.ID);
+                    table.PrimaryKey("PK_sub_communities", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_pe_sub_communities_pre_communities_PreCommunityID",
-                        column: x => x.PreCommunityID,
-                        principalTable: "pre_communities",
+                        name: "FK_sub_communities_communities_CommunityID",
+                        column: x => x.CommunityID,
+                        principalTable: "communities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -72,18 +72,18 @@ namespace Fyp.Migrations
                     Age = table.Column<int>(type: "int", nullable: false),
                     School = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CommunityId = table.Column<int>(type: "int", nullable: false),
-                    PreCommunityId = table.Column<int>(type: "int", nullable: false)
+                    CommunityId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_users", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_users_pre_communities_PreCommunityId",
-                        column: x => x.PreCommunityId,
-                        principalTable: "pre_communities",
+                        name: "FK_users_communities_CommunityId",
+                        column: x => x.CommunityId,
+                        principalTable: "communities",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -97,15 +97,14 @@ namespace Fyp.Migrations
                     content = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UploadDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UserId = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UsersId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_documents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_documents_users_UsersId",
-                        column: x => x.UsersId,
+                        name: "FK_documents_users_UserId",
+                        column: x => x.UserId,
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -157,25 +156,30 @@ namespace Fyp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LikesCount = table.Column<int>(type: "int", nullable: false),
+                    CommentsCount = table.Column<int>(type: "int", nullable: false),
+                    ShareCount = table.Column<int>(type: "int", nullable: false),
+                    Timestamp = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-                    PreCommunityId = table.Column<int>(type: "int", nullable: false),
-                    PreSubCommunityId = table.Column<int>(type: "int", nullable: false)
+                    CommunityId = table.Column<int>(type: "int", nullable: true),
+                    SubCommunityId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_posts", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_posts_pe_sub_communities_PreSubCommunityId",
-                        column: x => x.PreSubCommunityId,
-                        principalTable: "pe_sub_communities",
-                        principalColumn: "ID",
+                        name: "FK_posts_communities_CommunityId",
+                        column: x => x.CommunityId,
+                        principalTable: "communities",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_posts_pre_communities_PreCommunityId",
-                        column: x => x.PreCommunityId,
-                        principalTable: "pre_communities",
-                        principalColumn: "Id",
+                        name: "FK_posts_sub_communities_SubCommunityId",
+                        column: x => x.SubCommunityId,
+                        principalTable: "sub_communities",
+                        principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_posts_users_UserId",
@@ -224,9 +228,9 @@ namespace Fyp.Migrations
                 {
                     table.PrimaryKey("PK_user_sub_communities", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_user_sub_communities_pe_sub_communities_SubCommunityId",
+                        name: "FK_user_sub_communities_sub_communities_SubCommunityId",
                         column: x => x.SubCommunityId,
-                        principalTable: "pe_sub_communities",
+                        principalTable: "sub_communities",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -243,7 +247,9 @@ namespace Fyp.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    LikesCount = table.Column<int>(type: "int", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     PostId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -306,9 +312,9 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_documents_UsersId",
+                name: "IX_documents_UserId",
                 table: "documents",
-                column: "UsersId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_likes_CommentId",
@@ -346,24 +352,24 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_pe_sub_communities_PreCommunityID",
-                table: "pe_sub_communities",
-                column: "PreCommunityID");
+                name: "IX_posts_CommunityId",
+                table: "posts",
+                column: "CommunityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_posts_PreCommunityId",
+                name: "IX_posts_SubCommunityId",
                 table: "posts",
-                column: "PreCommunityId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_posts_PreSubCommunityId",
-                table: "posts",
-                column: "PreSubCommunityId");
+                column: "SubCommunityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_posts_UserId",
                 table: "posts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_sub_communities_CommunityID",
+                table: "sub_communities",
+                column: "CommunityID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_chat_rooms_RoomId",
@@ -386,9 +392,9 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_users_PreCommunityId",
+                name: "IX_users_CommunityId",
                 table: "users",
-                column: "PreCommunityId");
+                column: "CommunityId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -418,13 +424,13 @@ namespace Fyp.Migrations
                 name: "posts");
 
             migrationBuilder.DropTable(
-                name: "pe_sub_communities");
+                name: "sub_communities");
 
             migrationBuilder.DropTable(
                 name: "users");
 
             migrationBuilder.DropTable(
-                name: "pre_communities");
+                name: "communities");
         }
     }
 }

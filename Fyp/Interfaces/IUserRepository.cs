@@ -12,5 +12,7 @@ namespace Fyp.Interfaces
         Task<User> SignIn(SignInDto dto);
         Task<List<User>> GetAllUsers();
         Task<bool> UpdateUserProfile(int userId, UpdateUserDto dto);
+        Task FollowUserAsync(int followerId, int followedId);
+        Task UnfollowUserAsync(int followerId, int followedId);
     }
 }

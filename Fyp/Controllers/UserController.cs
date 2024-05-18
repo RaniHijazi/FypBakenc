@@ -116,7 +116,26 @@ namespace Fyp.Controllers
 
         }
 
+        [HttpPost("follow")]
+        public async Task<IActionResult> Follow([FromBody] FollowRequest request)
+        {
+            await _userRepository.FollowUserAsync(request.FollowerId, request.FollowedId);
+            return Ok();
+        }
 
-        
+        [HttpPost("unfollow")]
+        public async Task<IActionResult> Unfollow([FromBody] FollowRequest request)
+        {
+            await _userRepository.UnfollowUserAsync(request.FollowerId, request.FollowedId);
+            return Ok();
+        }
+
+
+
+    }
+    public class FollowRequest
+    {
+        public int FollowerId { get; set; }
+        public int FollowedId { get; set; }
     }
 }

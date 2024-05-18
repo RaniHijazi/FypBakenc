@@ -10,21 +10,21 @@ namespace Fyp.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PreCommunityController : ControllerBase
+    public class CommunityController : ControllerBase
     {
-        private readonly IPreCommunityRepository _repository;
+        private readonly ICommunityRepository _repository;
 
-        public PreCommunityController(IPreCommunityRepository repository)
+        public CommunityController(ICommunityRepository repository)
         {
             _repository = repository;
         }
 
         [HttpPost("CreateCommunity")]
-        public async Task<IActionResult> CreatePreCommunity(PreCommunityDto dto)
+        public async Task<IActionResult> CreatePreCommunity(CommunityDto dto)
         {
             try
             {
-                await _repository.CreatePreCommunity(dto);
+                await _repository.CreateCommunity(dto);
                 return Ok("Community created successfully.");
             }
             catch (Exception ex)
@@ -38,7 +38,7 @@ namespace Fyp.Controllers
         {
             try
             {
-                await _repository.CreatePreSubCommunity(preId, name);
+                await _repository.CreateSubCommunity(preId, name);
                 return Ok("Subcommunity created successfully.");
             }
             catch (Exception ex)
@@ -52,7 +52,7 @@ namespace Fyp.Controllers
         {
             try
             {
-                await _repository.AddUserToPreSubCommunity(userId, presubCommunityId);
+                await _repository.AddUserToSubCommunity(userId, presubCommunityId);
                 return Ok("User added to subcommunity successfully.");
             }
             catch (Exception ex)
@@ -75,12 +75,12 @@ namespace Fyp.Controllers
             }
         }
 
-        [HttpGet("{preCommunityId}/subCommunities")]
+        [HttpGet("{CommunityId}/subCommunities")]
         public async Task<IActionResult> GetPreSubCommunities(int preCommunityId)
         {
             try
             {
-                var subCommunities = await _repository.GetPreSubCommunities(preCommunityId);
+                var subCommunities = await _repository.GetSubCommunities(preCommunityId);
                 return Ok(subCommunities);
             }
             catch (Exception ex)

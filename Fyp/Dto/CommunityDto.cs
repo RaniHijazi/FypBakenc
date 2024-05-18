@@ -1,6 +1,6 @@
 ﻿namespace Fyp.Dto
 {
-    public class PreCommunityDto
+    public class CommunityDto
     {
         public string Name { get; set; }
         public string Description { get; set; }

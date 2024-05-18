@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
     {
     }
     public DbSet<User> users { get; set; }
-    public DbSet<PreCommunity> pre_communities  { get; set; }
-    public DbSet<PreSubCommunity> pre_sub_communities { get; set; }
+    public DbSet<Community> communities  { get; set; }
+    public DbSet<SubCommunity> sub_communities { get; set; }
     public DbSet<UserSubCommunity> user_sub_communities { get; set; }
     public DbSet<Document> documents { get; set; }
     public DbSet<Like> likes { get; set; }
@@ -17,6 +17,7 @@ using Microsoft.EntityFrameworkCore;
     public DbSet<ChatRoom> chat_rooms { get; set; }  
     public DbSet<Message> messages { get; set; }
     public DbSet<UserChatRoom>user_chat_rooms { get; set; }
+    public DbSet<Follow> Follows { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         
@@ -61,16 +62,16 @@ using Microsoft.EntityFrameworkCore;
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Post>()
-            .HasOne(p => p.PreCommunity)             
+            .HasOne(p => p.Community)             
             .WithMany(pc => pc.Posts)                
-            .HasForeignKey(p => p.PreCommunityId)  
+            .HasForeignKey(p => p.CommunityId)  
              .OnDelete(DeleteBehavior.Restrict);     
 
 
         modelBuilder.Entity<Post>()
-            .HasOne(p => p.PreSubCommunity)          
+            .HasOne(p => p.SubCommunity)          
             .WithMany(psc => psc.Posts)              
-            .HasForeignKey(p => p.PreSubCommunityId) 
+            .HasForeignKey(p => p.SubCommunityId) 
             .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<UserSubCommunity>()
             .HasOne(usc => usc.User)
@@ -82,6 +83,21 @@ using Microsoft.EntityFrameworkCore;
             .HasOne(c => c.User)
             .WithMany(u => u.Comments)
             .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Follow>()
+                .HasKey(f => f.Id);
+
+        modelBuilder.Entity<Follow>()
+            .HasOne(f => f.Follower)
+            .WithMany(u => u.Followings)
+            .HasForeignKey(f => f.FollowerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Follow>()
+            .HasOne(f => f.Followed)
+            .WithMany(u => u.Followers)
+            .HasForeignKey(f => f.FollowedId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

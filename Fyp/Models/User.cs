@@ -18,11 +18,13 @@ namespace Fyp.Models
         public string Role { get; set; }
         public string? VerificationCode { get; set; }
         public DateTime JoinDate { get; set; }
-        [ForeignKey("PreCommunityId")]
-        public int PrecommunityId { get; set; }
+        public int TotalFollowers { get; set; }
+        public int TotalFollowing { get; set; }
+        [ForeignKey("CommunityId")]
+        public int CommunityId { get; set; }
         
         [JsonIgnore]
-        public PreCommunity PreCommunity { get; set; }
+        public Community Community { get; set; }
         [JsonIgnore]
         public ICollection<UserSubCommunity> UserSubCommunities { get; set; }
         [JsonIgnore]
@@ -37,6 +39,11 @@ namespace Fyp.Models
         public ICollection<UserChatRoom> UserChatRooms { get; set; }
         [JsonIgnore]
         public ICollection<Document> Documents { get; set; }
+
+        [JsonIgnore]
+        public ICollection<Follow> Followers { get; set; }
+        [JsonIgnore]
+        public ICollection<Follow> Followings { get; set; }
 
 
 

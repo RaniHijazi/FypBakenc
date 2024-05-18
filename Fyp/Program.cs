@@ -23,7 +23,7 @@ services.AddEndpointsApiExplorer();
 
 services.AddScoped<IUserRepository, UserRepository>();
 
-services.AddScoped<IPreCommunityRepository, PreCommunityRepository>();
+services.AddScoped<ICommunityRepository, CommunityRepository>();
 
 services.AddScoped<IPostRepository, PostRepository>();
 services.AddTransient<IEmailRepository, EmailRepository>();
