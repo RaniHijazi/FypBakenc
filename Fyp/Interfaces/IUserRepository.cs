@@ -10,6 +10,7 @@ namespace Fyp.Interfaces
         Task<bool> VerifyVerificationCode(string userEmail, string verificationCode);
         Task<User> SignUp(SignUpDto dto);
         Task<User> SignIn(SignInDto dto);
+        Task<User> GetUserByIdAsync(int userId);
         Task<List<User>> GetAllUsers();
         Task<bool> UpdateUserProfile(int userId, UpdateUserDto dto);
         Task FollowUserAsync(int followerId, int followedId);

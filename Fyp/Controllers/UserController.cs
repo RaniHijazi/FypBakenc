@@ -16,12 +16,12 @@ namespace Fyp.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
-        
+
         public UserController(IUserRepository userRepository, IConfiguration configuration)
         {
             _userRepository = userRepository;
             _configuration = configuration;
-            
+
 
         }
 
@@ -83,7 +83,22 @@ namespace Fyp.Controllers
             }
         }
 
-        [HttpPost("signin")]
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<User>> GetUserById(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
+     
+
+
+    [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDto signInDto)
         {
             try

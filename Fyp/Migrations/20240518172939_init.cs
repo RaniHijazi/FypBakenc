@@ -5,11 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fyp.Migrations
 {
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
-    public partial class InitialCreate : Migration
-========
     public partial class init : Migration
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -42,11 +38,7 @@ namespace Fyp.Migrations
                 });
 
             migrationBuilder.CreateTable(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                 name: "sub_communities",
-========
-                name: "pre_sub_communities",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                 columns: table => new
                 {
                     ID = table.Column<int>(type: "int", nullable: false)
@@ -56,19 +48,11 @@ namespace Fyp.Migrations
                 },
                 constraints: table =>
                 {
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                     table.PrimaryKey("PK_sub_communities", x => x.ID);
                     table.ForeignKey(
                         name: "FK_sub_communities_communities_CommunityID",
                         column: x => x.CommunityID,
                         principalTable: "communities",
-========
-                    table.PrimaryKey("PK_pre_sub_communities", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_pre_sub_communities_pre_communities_PreCommunityID",
-                        column: x => x.PreCommunityID,
-                        principalTable: "pre_communities",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -91,25 +75,17 @@ namespace Fyp.Migrations
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
+                    TotalFollowers = table.Column<int>(type: "int", nullable: false),
+                    TotalFollowing = table.Column<int>(type: "int", nullable: false),
                     CommunityId = table.Column<int>(type: "int", nullable: false)
-========
-                    PrecommunityId = table.Column<int>(type: "int", nullable: false)
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_users", x => x.Id);
                     table.ForeignKey(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                         name: "FK_users_communities_CommunityId",
                         column: x => x.CommunityId,
                         principalTable: "communities",
-========
-                        name: "FK_users_pre_communities_PrecommunityId",
-                        column: x => x.PrecommunityId,
-                        principalTable: "pre_communities",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -134,6 +110,33 @@ namespace Fyp.Migrations
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Follows",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FollowerId = table.Column<int>(type: "int", nullable: false),
+                    FollowedId = table.Column<int>(type: "int", nullable: false),
+                    FollowedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Follows", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Follows_users_FollowedId",
+                        column: x => x.FollowedId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Follows_users_FollowerId",
+                        column: x => x.FollowerId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -189,19 +192,13 @@ namespace Fyp.Migrations
                     ShareCount = table.Column<int>(type: "int", nullable: false),
                     Timestamp = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false),
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                     CommunityId = table.Column<int>(type: "int", nullable: true),
                     SubCommunityId = table.Column<int>(type: "int", nullable: true)
-========
-                    PreCommunityId = table.Column<int>(type: "int", nullable: true),
-                    PreSubCommunityId = table.Column<int>(type: "int", nullable: true)
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_posts", x => x.Id);
                     table.ForeignKey(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                         name: "FK_posts_communities_CommunityId",
                         column: x => x.CommunityId,
                         principalTable: "communities",
@@ -211,18 +208,6 @@ namespace Fyp.Migrations
                         name: "FK_posts_sub_communities_SubCommunityId",
                         column: x => x.SubCommunityId,
                         principalTable: "sub_communities",
-                        principalColumn: "ID",
-========
-                        name: "FK_posts_pre_communities_PreCommunityId",
-                        column: x => x.PreCommunityId,
-                        principalTable: "pre_communities",
-                        principalColumn: "Id",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_posts_pre_sub_communities_PreSubCommunityId",
-                        column: x => x.PreSubCommunityId,
-                        principalTable: "pre_sub_communities",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -272,15 +257,9 @@ namespace Fyp.Migrations
                 {
                     table.PrimaryKey("PK_user_sub_communities", x => x.Id);
                     table.ForeignKey(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                         name: "FK_user_sub_communities_sub_communities_SubCommunityId",
                         column: x => x.SubCommunityId,
                         principalTable: "sub_communities",
-========
-                        name: "FK_user_sub_communities_pre_sub_communities_SubCommunityId",
-                        column: x => x.SubCommunityId,
-                        principalTable: "pre_sub_communities",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -367,6 +346,16 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowedId",
+                table: "Follows",
+                column: "FollowedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowerId",
+                table: "Follows",
+                column: "FollowerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_likes_CommentId",
                 table: "likes",
                 column: "CommentId");
@@ -402,16 +391,12 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                 name: "IX_posts_CommunityId",
                 table: "posts",
                 column: "CommunityId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_posts_SubCommunityId",
-========
-                name: "IX_posts_PreCommunityId",
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
                 table: "posts",
                 column: "SubCommunityId");
 
@@ -421,15 +406,9 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                 name: "IX_sub_communities_CommunityID",
                 table: "sub_communities",
                 column: "CommunityID");
-========
-                name: "IX_pre_sub_communities_PreCommunityID",
-                table: "pre_sub_communities",
-                column: "PreCommunityID");
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
 
             migrationBuilder.CreateIndex(
                 name: "IX_user_chat_rooms_RoomId",
@@ -452,21 +431,18 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                 name: "IX_users_CommunityId",
                 table: "users",
                 column: "CommunityId");
-========
-                name: "IX_users_PrecommunityId",
-                table: "users",
-                column: "PrecommunityId");
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "documents");
+
+            migrationBuilder.DropTable(
+                name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "likes");
@@ -490,11 +466,7 @@ namespace Fyp.Migrations
                 name: "posts");
 
             migrationBuilder.DropTable(
-<<<<<<<< Updated upstream:Fyp/Migrations/20240517160217_InitialCreate.cs
                 name: "sub_communities");
-========
-                name: "pre_sub_communities");
->>>>>>>> Stashed changes:Fyp/Migrations/20240517130910_init.cs
 
             migrationBuilder.DropTable(
                 name: "users");
