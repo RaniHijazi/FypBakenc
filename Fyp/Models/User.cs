@@ -22,6 +22,7 @@ namespace Fyp.Models
         public int TotalFollowing { get; set; }
         [ForeignKey("CommunityId")]
         public int CommunityId { get; set; }
+
         
         [JsonIgnore]
         public Community Community { get; set; }
@@ -45,7 +46,7 @@ namespace Fyp.Models
         [JsonIgnore]
         public ICollection<Follow> Followings { get; set; }
 
-
+        public string? MemberStatus { get; set; }
 
 
 

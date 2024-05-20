@@ -37,6 +37,9 @@ namespace Fyp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("nbMembers")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.ToTable("chat_rooms");
@@ -321,6 +324,9 @@ namespace Fyp.Migrations
 
                     b.Property<DateTime>("JoinDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("MemberStatus")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .IsRequired()

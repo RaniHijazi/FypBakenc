@@ -3,10 +3,15 @@ using Fyp.Interfaces;
 using Fyp.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Fyp.Controllers
 {
@@ -16,25 +21,25 @@ namespace Fyp.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
-        
-        public UserController(IUserRepository userRepository, IConfiguration configuration)
+        private readonly BlobStorageService _blobStorageService;
+
+        public UserController(IUserRepository userRepository, IConfiguration configuration, BlobStorageService blobStorageService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
-            
-
+            _blobStorageService = blobStorageService;
         }
 
-        private async Task<string> createToken(User user)
+        private async Task<string> CreateToken(User user)
         {
             List<Claim> claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.Name, user.FullName),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            {
+                new Claim(ClaimTypes.Name, user.FullName),
+                new Claim(ClaimTypes.Role, user.Role)
+            };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value!));
+                _configuration.GetSection("AppSettings:Token").Value));
 
             var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
 
@@ -69,7 +74,7 @@ namespace Fyp.Controllers
             try
             {
                 var newUser = await _userRepository.SignUp(signUpDto);
-                var token = await createToken(newUser);
+                var token = await CreateToken(newUser);
                 return Ok(new { newUser, token });
             }
             catch (InvalidOperationException ex)
@@ -82,6 +87,18 @@ namespace Fyp.Controllers
                 return StatusCode(500, "An error occurred while processing the request");
             }
         }
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<User>> GetUserById(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user;
+        }
 
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDto signInDto)
@@ -89,7 +106,7 @@ namespace Fyp.Controllers
             try
             {
                 var user = await _userRepository.SignIn(signInDto);
-                var token = await createToken(user);
+                var token = await CreateToken(user);
                 return Ok(new { user, token });
             }
             catch (InvalidOperationException ex)
@@ -101,6 +118,7 @@ namespace Fyp.Controllers
                 return StatusCode(500, new { error = "An unexpected error occurred" });
             }
         }
+
         [HttpGet("all")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -113,7 +131,6 @@ namespace Fyp.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
-
         }
 
         [HttpPost("follow")]
@@ -130,9 +147,45 @@ namespace Fyp.Controllers
             return Ok();
         }
 
+        [HttpPost("uploadimage")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile image)
+        {
+            try
+            {
+                if (image == null || image.Length == 0)
+                    return BadRequest("No image uploaded");
 
+                string imageUrl = await _blobStorageService.UploadImageAsync(image);
+                return Ok(new { ImageUrl = imageUrl });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to upload image: {ex.Message}");
+            }
+        }
 
+        [HttpPost("saveurl")]
+        public async Task<IActionResult> SaveUrl([FromForm] SaveUrlRequest request)
+        {
+            try
+            {
+                await _blobStorageService.SaveUserUrlAsync(request.UserId, request.Image);
+                return Ok("User profile image URL saved successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to save user profile image URL: {ex.Message}");
+            }
+        }
     }
+    public class SaveUrlRequest
+    {
+        public int UserId { get; set; }
+        public IFormFile Image { get; set; }
+    }
+
+
     public class FollowRequest
     {
         public int FollowerId { get; set; }

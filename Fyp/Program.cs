@@ -16,29 +16,33 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var services = builder.Services;
 
+// Add controllers and API explorer
 services.AddControllers();
 services.AddEndpointsApiExplorer();
 
+// Add SignalR for real-time communication
+services.AddSignalR();
 
-
+// Register repositories and services
 services.AddScoped<IUserRepository, UserRepository>();
-
 services.AddScoped<ICommunityRepository, CommunityRepository>();
-
 services.AddScoped<IPostRepository, PostRepository>();
 services.AddTransient<IEmailRepository, EmailRepository>();
+services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
+services.AddScoped<IMessageRepository, MessageRepository>();
+services.AddScoped<BlobStorageService>();
 
+// Configure Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
-        Description = "standard authorization header using the bearer scheme (\"bearer{token}\")",
+        Description = "Standard authorization header using the Bearer scheme (\"Bearer {token}\")",
         In = ParameterLocation.Header,
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
     options.OperationFilter<SecurityRequirementsOperationFilter>();
-    // Set up Swagger to use the generated Swagger JSON endpoint
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Your API", Version = "v1" });
 });
 
@@ -54,7 +58,7 @@ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-            builder.Configuration.GetSection("AppSettings:Token").Value)),
+                builder.Configuration.GetSection("AppSettings:Token").Value)),
             ValidateIssuer = false,
             ValidateAudience = false
         };
@@ -85,7 +89,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Enable CORS policy
+app.UseCors("AllowAnyOriginPolicy");
+
+// Authentication and authorization
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Map controllers for HTTP APIs
 app.MapControllers();
 
+// Map SignalR hub(s)
+app.MapHub<ChatHub>("/chatHub");
+
+// Run the application
 app.Run();

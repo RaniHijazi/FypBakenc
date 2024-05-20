@@ -9,6 +9,9 @@ namespace Fyp.Models
 
         [Required]
         public string RoomName { get; set; }
+        public int nbMembers { get; set; }
+
+
 
         public string Description { get; set; }
         [JsonIgnore]
