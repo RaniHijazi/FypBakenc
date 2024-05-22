@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fyp.Migrations
 {
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -92,12 +92,8 @@ namespace Fyp.Migrations
                     JoinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TotalFollowers = table.Column<int>(type: "int", nullable: false),
                     TotalFollowing = table.Column<int>(type: "int", nullable: false),
-<<<<<<<< HEAD:Fyp/Migrations/20240521234231_InitialCreate.cs
                     CommunityId = table.Column<int>(type: "int", nullable: false),
                     MemberStatus = table.Column<string>(type: "nvarchar(max)", nullable: true)
-========
-                    CommunityId = table.Column<int>(type: "int", nullable: false)
->>>>>>>> 6af83673c428b9aa6577f4be3b8fad41443d8aad:Fyp/Migrations/20240518172939_init.cs
                 },
                 constraints: table =>
                 {
@@ -144,7 +140,7 @@ namespace Fyp.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UploadDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -447,7 +443,6 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< HEAD:Fyp/Migrations/20240521234231_InitialCreate.cs
                 name: "IX_documents_approval_ApprovedById",
                 table: "documents_approval",
                 column: "ApprovedById");
@@ -459,8 +454,6 @@ namespace Fyp.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-========
->>>>>>>> 6af83673c428b9aa6577f4be3b8fad41443d8aad:Fyp/Migrations/20240518172939_init.cs
                 name: "IX_Follows_FollowedId",
                 table: "Follows",
                 column: "FollowedId");
@@ -563,9 +556,6 @@ namespace Fyp.Migrations
 
             migrationBuilder.DropTable(
                 name: "documents_approval");
-
-            migrationBuilder.DropTable(
-                name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "Follows");

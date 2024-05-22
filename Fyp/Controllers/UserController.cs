@@ -100,18 +100,7 @@ namespace Fyp.Controllers
             return user;
         }
 
-        [HttpGet("{userId}")]
-        public async Task<ActionResult<User>> GetUserById(int userId)
-        {
-            var user = await _userRepository.GetUserByIdAsync(userId);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            return user;
-        }
+       
      
 
 

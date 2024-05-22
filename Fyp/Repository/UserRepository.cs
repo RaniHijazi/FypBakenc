@@ -116,10 +116,7 @@ namespace Fyp.Repository
 
 
 
-        public async Task<User> GetUserByIdAsync(int userId)
-        {
-            return await _context.users.FindAsync(userId);
-        }
+        
 
 
 

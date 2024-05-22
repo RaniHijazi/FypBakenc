@@ -11,13 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fyp.Migrations
 {
     [DbContext(typeof(DataContext))]
-<<<<<<<< HEAD:Fyp/Migrations/20240521235701_InitialCreate2.Designer.cs
-    [Migration("20240521235701_InitialCreate2")]
-    partial class InitialCreate2
-========
-    [Migration("20240518172939_init")]
-    partial class init
->>>>>>>> 6af83673c428b9aa6577f4be3b8fad41443d8aad:Fyp/Migrations/20240518172939_init.Designer.cs
+    [Migration("20240522155230_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

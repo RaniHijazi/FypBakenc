@@ -15,6 +15,6 @@ namespace Fyp.Interfaces
         Task<bool> UpdateUserProfile(int userId, UpdateUserDto dto);
         Task FollowUserAsync(int followerId, int followedId);
         Task UnfollowUserAsync(int followerId, int followedId);
-        Task<User> GetUserByIdAsync(int userId);
+      
     }
 }
