@@ -11,8 +11,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fyp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20240521234231_InitialCreate")]
-    partial class InitialCreate
+<<<<<<<< HEAD:Fyp/Migrations/20240521235701_InitialCreate2.Designer.cs
+    [Migration("20240521235701_InitialCreate2")]
+    partial class InitialCreate2
+========
+    [Migration("20240518172939_init")]
+    partial class init
+>>>>>>>> 6af83673c428b9aa6577f4be3b8fad41443d8aad:Fyp/Migrations/20240518172939_init.Designer.cs
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -142,7 +147,6 @@ namespace Fyp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImgUrl")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
