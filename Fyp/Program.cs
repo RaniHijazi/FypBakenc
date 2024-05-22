@@ -30,6 +30,8 @@ services.AddScoped<IPostRepository, PostRepository>();
 services.AddTransient<IEmailRepository, EmailRepository>();
 services.AddScoped<IChatRoomRepository, ChatRoomRepository>();
 services.AddScoped<IMessageRepository, MessageRepository>();
+services.AddScoped<IUniversityRepository, UniversityRepository>();
+services.AddScoped<IDocumentRepository, DocumentRepository>();
 services.AddScoped<BlobStorageService>();
 
 // Configure Swagger

@@ -4,13 +4,13 @@
 
 namespace Fyp.Migrations
 {
-    public partial class nullablestatus : Migration
+    public partial class InitialCreate2 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "MemberStatus",
-                table: "users",
+                name: "ImgUrl",
+                table: "documents",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -20,8 +20,8 @@ namespace Fyp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterColumn<string>(
-                name: "MemberStatus",
-                table: "users",
+                name: "ImgUrl",
+                table: "documents",
                 type: "nvarchar(max)",
                 nullable: false,
                 defaultValue: "",

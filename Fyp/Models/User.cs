@@ -48,7 +48,8 @@ namespace Fyp.Models
 
         public string? MemberStatus { get; set; }
 
-
+        [JsonIgnore]
+        public ICollection<DocumentApproval> DocumentApprovals { get; set; }
 
     }
 }

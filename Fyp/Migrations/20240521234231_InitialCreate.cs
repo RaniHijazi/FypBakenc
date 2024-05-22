@@ -16,6 +16,7 @@ namespace Fyp.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     RoomName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    nbMembers = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
@@ -35,6 +36,20 @@ namespace Fyp.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_communities", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "faculties",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_faculties", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -75,7 +90,10 @@ namespace Fyp.Migrations
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     JoinDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CommunityId = table.Column<int>(type: "int", nullable: false)
+                    TotalFollowers = table.Column<int>(type: "int", nullable: false),
+                    TotalFollowing = table.Column<int>(type: "int", nullable: false),
+                    CommunityId = table.Column<int>(type: "int", nullable: false),
+                    MemberStatus = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -89,14 +107,40 @@ namespace Fyp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "majors",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Department = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FacultyId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_majors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_majors_faculties_FacultyId",
+                        column: x => x.FacultyId,
+                        principalTable: "faculties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "documents",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UploadDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UploadDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImgUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -108,6 +152,33 @@ namespace Fyp.Migrations
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Follows",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FollowerId = table.Column<int>(type: "int", nullable: false),
+                    FollowedId = table.Column<int>(type: "int", nullable: false),
+                    FollowedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Follows", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Follows_users_FollowedId",
+                        column: x => x.FollowedId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Follows_users_FollowerId",
+                        column: x => x.FollowerId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -242,6 +313,56 @@ namespace Fyp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "corses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Credits = table.Column<int>(type: "int", nullable: false),
+                    MajorId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_corses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_corses_majors_MajorId",
+                        column: x => x.MajorId,
+                        principalTable: "majors",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "documents_approval",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DocumentId = table.Column<int>(type: "int", nullable: false),
+                    ApprovedById = table.Column<int>(type: "int", nullable: false),
+                    ApprovalDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_documents_approval", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_documents_approval_documents_DocumentId",
+                        column: x => x.DocumentId,
+                        principalTable: "documents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_documents_approval_users_ApprovedById",
+                        column: x => x.ApprovedById,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "comments",
                 columns: table => new
                 {
@@ -312,9 +433,35 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_corses_MajorId",
+                table: "corses",
+                column: "MajorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_documents_UserId",
                 table: "documents",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_documents_approval_ApprovedById",
+                table: "documents_approval",
+                column: "ApprovedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_documents_approval_DocumentId",
+                table: "documents_approval",
+                column: "DocumentId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowedId",
+                table: "Follows",
+                column: "FollowedId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Follows_FollowerId",
+                table: "Follows",
+                column: "FollowerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_likes_CommentId",
@@ -330,6 +477,11 @@ namespace Fyp.Migrations
                 name: "IX_likes_UserId",
                 table: "likes",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_majors_FacultyId",
+                table: "majors",
+                column: "FacultyId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_messages_RecipientId",
@@ -400,7 +552,13 @@ namespace Fyp.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "documents");
+                name: "corses");
+
+            migrationBuilder.DropTable(
+                name: "documents_approval");
+
+            migrationBuilder.DropTable(
+                name: "Follows");
 
             migrationBuilder.DropTable(
                 name: "likes");
@@ -415,10 +573,19 @@ namespace Fyp.Migrations
                 name: "user_sub_communities");
 
             migrationBuilder.DropTable(
+                name: "majors");
+
+            migrationBuilder.DropTable(
+                name: "documents");
+
+            migrationBuilder.DropTable(
                 name: "comments");
 
             migrationBuilder.DropTable(
                 name: "chat_rooms");
+
+            migrationBuilder.DropTable(
+                name: "faculties");
 
             migrationBuilder.DropTable(
                 name: "posts");

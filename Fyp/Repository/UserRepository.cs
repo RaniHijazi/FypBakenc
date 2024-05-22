@@ -30,26 +30,20 @@ namespace Fyp.Repository
 
         public async Task<User> SignUp(SignUpDto dto)
         {
- 
             bool isUAEduLbEmail = dto.Email.EndsWith("@ua.edu.lb");
+            string role = isUAEduLbEmail ? "student" : "default_role";
 
-            
-            string role = isUAEduLbEmail ? "student" : "default_role"; 
-
-            
             if (await _context.users.AnyAsync(u => u.FullName == dto.FullName))
             {
                 throw new InvalidOperationException("Username already exists");
             }
 
-           
             if (await _context.users.AnyAsync(u => u.Email == dto.Email))
             {
                 throw new InvalidOperationException("Email already used");
             }
 
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            
             int CommunityId = isUAEduLbEmail ? 2 : 1;
 
             var newUser = new User
@@ -60,15 +54,60 @@ namespace Fyp.Repository
                 Gender = dto.Gender,
                 Age = dto.Age,
                 JoinDate = DateTime.Now,
-                Role = role, 
+                Role = role,
                 CommunityId = CommunityId,
             };
 
             _context.users.Add(newUser);
             await _context.SaveChangesAsync();
 
+            
+            var documents = new List<Document>
+    {
+        new Document
+        {
+            
+            Name = "Document 1",
+            Status = "Pending",
+            Description = "Description of Document 1",
+            UploadDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            UserId = newUser.Id
+        },
+        new Document
+        {
+            
+            Name = "Document 2",
+            Status = "Pending",
+            Description = "Description of Document 2",
+            UploadDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            UserId = newUser.Id
+        },
+        new Document
+        {
+            
+            Name = "Document 3",
+            Status = "Pending",
+            Description = "Description of Document 3",
+            UploadDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            UserId = newUser.Id
+        },
+        new Document
+        {
+            
+            Name = "Document 4",
+            Status = "Pending",
+            Description = "Description of Document 4",
+            UploadDate = DateTime.Now.ToString("yyyy-MM-dd"),
+            UserId = newUser.Id
+        }
+    };
+
+            _context.documents.AddRange(documents);
+            await _context.SaveChangesAsync();
+
             return newUser;
         }
+
 
 
         public async Task<User> GetUserByIdAsync(int userId)

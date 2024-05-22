@@ -98,13 +98,55 @@ namespace Fyp.Migrations
                     b.ToTable("communities");
                 });
 
-            modelBuilder.Entity("Fyp.Models.Document", b =>
+            modelBuilder.Entity("Fyp.Models.Corse", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("Credits")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MajorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MajorId");
+
+                    b.ToTable("corses");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Document", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImgUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
@@ -118,15 +160,63 @@ namespace Fyp.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<string>("content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
                     b.ToTable("documents");
+                });
+
+            modelBuilder.Entity("Fyp.Models.DocumentApproval", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("ApprovalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ApprovedById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApprovedById");
+
+                    b.HasIndex("DocumentId")
+                        .IsUnique();
+
+                    b.ToTable("documents_approval");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Faculty", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("ImgUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("faculties");
                 });
 
             modelBuilder.Entity("Fyp.Models.Follow", b =>
@@ -181,6 +271,40 @@ namespace Fyp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("likes");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Major", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FacultyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImgUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FacultyId");
+
+                    b.ToTable("majors");
                 });
 
             modelBuilder.Entity("Fyp.Models.Message", b =>
@@ -426,6 +550,17 @@ namespace Fyp.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Corse", b =>
+                {
+                    b.HasOne("Fyp.Models.Major", "major")
+                        .WithMany("corses")
+                        .HasForeignKey("MajorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("major");
+                });
+
             modelBuilder.Entity("Fyp.Models.Document", b =>
                 {
                     b.HasOne("Fyp.Models.User", "User")
@@ -435,6 +570,25 @@ namespace Fyp.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Fyp.Models.DocumentApproval", b =>
+                {
+                    b.HasOne("Fyp.Models.User", "AdminUser")
+                        .WithMany("DocumentApprovals")
+                        .HasForeignKey("ApprovedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Fyp.Models.Document", "Document")
+                        .WithOne("DocumentApproval")
+                        .HasForeignKey("Fyp.Models.DocumentApproval", "DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+
+                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("Fyp.Models.Follow", b =>
@@ -477,6 +631,17 @@ namespace Fyp.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Major", b =>
+                {
+                    b.HasOne("Fyp.Models.Faculty", "faculty")
+                        .WithMany("majors")
+                        .HasForeignKey("FacultyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("faculty");
                 });
 
             modelBuilder.Entity("Fyp.Models.Message", b =>
@@ -614,6 +779,22 @@ namespace Fyp.Migrations
                     b.Navigation("Users");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Document", b =>
+                {
+                    b.Navigation("DocumentApproval")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Fyp.Models.Faculty", b =>
+                {
+                    b.Navigation("majors");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Major", b =>
+                {
+                    b.Navigation("corses");
+                });
+
             modelBuilder.Entity("Fyp.Models.Post", b =>
                 {
                     b.Navigation("Comments");
@@ -631,6 +812,8 @@ namespace Fyp.Migrations
             modelBuilder.Entity("Fyp.Models.User", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("DocumentApprovals");
 
                     b.Navigation("Documents");
 
