@@ -7,14 +7,16 @@ using SendGrid.Helpers.Mail;
 
 namespace Fyp.Repository
 {
-    public class UserRepository:IUserRepository
+    public class UserRepository : IUserRepository
     {
 
         private readonly DataContext _context;
-       
-        public UserRepository(DataContext context)
+        private readonly BlobStorageService _blobStorageService;
+
+        public UserRepository(DataContext context, BlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task<bool> VerifyVerificationCode(string userEmail, string verificationCode)
@@ -61,12 +63,12 @@ namespace Fyp.Repository
             _context.users.Add(newUser);
             await _context.SaveChangesAsync();
 
-            
+
             var documents = new List<Document>
     {
         new Document
         {
-            
+
             Name = "Document 1",
             Status = "Pending",
             Description = "Description of Document 1",
@@ -75,7 +77,7 @@ namespace Fyp.Repository
         },
         new Document
         {
-            
+
             Name = "Document 2",
             Status = "Pending",
             Description = "Description of Document 2",
@@ -84,7 +86,7 @@ namespace Fyp.Repository
         },
         new Document
         {
-            
+
             Name = "Document 3",
             Status = "Pending",
             Description = "Description of Document 3",
@@ -93,7 +95,7 @@ namespace Fyp.Repository
         },
         new Document
         {
-            
+
             Name = "Document 4",
             Status = "Pending",
             Description = "Description of Document 4",
@@ -116,7 +118,7 @@ namespace Fyp.Repository
 
 
 
-        
+
 
 
 
@@ -181,9 +183,15 @@ namespace Fyp.Repository
 
             _context.Follows.Add(follow);
             var userToFollow = await _context.users.FindAsync(followedId);
+            if (userToFollow == null)
+            {
+                throw new InvalidOperationException("User followed not found");
+            }
+             
             userToFollow.TotalFollowers++;
 
             var followerUser = await _context.users.FindAsync(followerId);
+            
             followerUser.TotalFollowing++;
             await _context.SaveChangesAsync();
         }
@@ -205,6 +213,77 @@ namespace Fyp.Repository
             }
         }
 
+        public async Task<UserProfileDto> GetUserProfile(int userId)
+        {
+            if (userId == null)
+            {
+                throw new InvalidOperationException("userId null");
+            }
+
+            var user = await _context.users.FindAsync(userId);
+
+            return new UserProfileDto
+            {
+                Bio=user.Bio,
+                FullName=user.FullName,
+                ProfilePath=user.ProfilePath,
+                Role=user.Role,
+                TotalFollowers=user.TotalFollowers,
+                TotalFollowing=user.TotalFollowing,
+
+            };
+        }
+
+
+        public async Task<bool> IsFollowingAsync(int followerId, int followedId)
+        {
+            return await _context.Follows
+                .AnyAsync(f => f.FollowerId == followerId && f.FollowedId == followedId);
+        }
+
+
+
+        public async Task<List<GetStoryDto>> GetStoriesAsync(int userId)
+        {
+            var followedUserIds = await _context.Follows
+                .Where(f => f.FollowerId == userId)
+                .Select(f => f.FollowedId)
+                .ToListAsync();
+
+            var stories = await _context.stories
+                .Where(s => followedUserIds.Contains(s.UserId))
+                .Include(s => s.User)
+                .Select(s => new GetStoryDto
+                {
+                    Id = s.Id,
+                    UserId = s.UserId,
+                    UserFullName = s.User.FullName,
+                    UserProfileImageUrl = s.User.ProfilePath,
+                    StoryPath = s.StoryPath,
+                    CreatedAt = s.CreatedAt
+                })
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            return stories;
+        }
+
+
+        public async Task<List<FollowingUserDto>> GetFollowingUsersAsync(int userId)
+        {
+            var followingUsers = await _context.Follows
+                .Where(f => f.FollowerId == userId)
+                .Include(f => f.Followed)
+                .Select(f => new FollowingUserDto
+                {
+                    Id = f.Followed.Id,
+                    FullName = f.Followed.FullName,
+                    ProfilePath = f.Followed.ProfilePath
+                })
+                .ToListAsync();
+
+            return followingUsers;
+        }
 
 
 

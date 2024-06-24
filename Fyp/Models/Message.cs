@@ -21,8 +21,13 @@ namespace Fyp.Models
         [JsonIgnore]
         public User Sender { get; set; }
         [JsonIgnore]
-        public User Recipient { get; set; }
+        public User? Recipient { get; set; }
 
         public ChatRoom Room { get; set; }
+        public int? StoryId { get; set; }
+        [JsonIgnore]
+        public Story Story { get; set; }
+
+
     }
 }

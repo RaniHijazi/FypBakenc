@@ -7,19 +7,26 @@ namespace Fyp.Repository
     public class UniversityRepository : IUniversityRepository
     {
         private readonly DataContext _context;
+        private readonly BlobStorageService _blobStorageService;
 
-        public UniversityRepository(DataContext context)
+        public UniversityRepository(DataContext context, BlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
         
-        public async Task<Faculty> AddFaculty(FacultyDto facultyDto)
+        public async Task<Faculty> AddFaculty(string name, IFormFile image)
         {
+            string imageUrl;
+            
+
+                imageUrl = await _blobStorageService.UploadImageAsync(image);
+            
             var faculty = new Faculty
             {
-                Name = facultyDto.Name,
-                ImgUrl = facultyDto.ImgUrl
+                Name = name,
+                ImgUrl = imageUrl,
             };
             _context.faculties.Add(faculty);
             await _context.SaveChangesAsync();
@@ -41,6 +48,7 @@ namespace Fyp.Repository
             return await _context.faculties
                 .Select(f => new FacultyDto
                 {
+                    id=f.Id,
                     Name = f.Name,
                     ImgUrl = f.ImgUrl
                 })
@@ -54,7 +62,7 @@ namespace Fyp.Repository
             {
                 Name = majorDto.Name,
                 Department = majorDto.Department,
-                Description = majorDto.Description,
+                Description = majorDto.Details,
                 ImgUrl = majorDto.ImgUrl,
                 FacultyId = facultyId
             };
@@ -73,15 +81,16 @@ namespace Fyp.Repository
             }
         }
 
-        public async Task<List<MajorDto>> DisplayMajorsOfFaculty(int facultyId)
+        public async Task<List<GetMajorDto>> DisplayMajorsOfFaculty(int facultyId)
         {
             return await _context.majors
                 .Where(m => m.FacultyId == facultyId)
-                .Select(m => new MajorDto
+                .Select(m => new GetMajorDto
                 {
+                    id=m.Id,
                     Name = m.Name,
                     Department = m.Department,
-                    Description = m.Description,
+                    Details = m.Description,
                     ImgUrl = m.ImgUrl
                 })
                 .ToListAsync();
@@ -93,7 +102,6 @@ namespace Fyp.Repository
             var course = new Corse
             {
                 Name = courseDto.Name,
-                Description = courseDto.Description,
                 Credits = courseDto.Credits,
                 MajorId = majorId
             };
@@ -112,14 +120,14 @@ namespace Fyp.Repository
             }
         }
 
-        public async Task<List<CorseDto>> DisplayCoursesOfMajor(int majorId)
+        public async Task<List<GetCorseDto>> DisplayCoursesOfMajor(int majorId)
         {
             return await _context.corses
                 .Where(c => c.MajorId == majorId)
-                .Select(c => new CorseDto
+                .Select(c => new GetCorseDto
                 {
                     Name = c.Name,
-                    Description = c.Description,
+                    id= c.Id,
                     Credits = c.Credits
                 })
                 .ToListAsync();

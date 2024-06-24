@@ -21,7 +21,7 @@ public class ChatRoomRepository : IChatRoomRepository
         {
             RoomName = dto.RoomName,
             Description = dto.Description,
-            nbMembers = 1 
+            nbMembers = 1
         };
 
         _context.chat_rooms.Add(room);
@@ -68,14 +68,14 @@ public class ChatRoomRepository : IChatRoomRepository
     {
         var userChatRooms = await _context.user_chat_rooms
             .Where(ucr => ucr.UserId == userId)
-            .Include(ucr => ucr.Room) 
+            .Include(ucr => ucr.Room)
             .ToListAsync();
 
         var chatRoomDtos = userChatRooms.Select(ucr => new ChatRoomDto2
         {
             RoomName = ucr.Room.RoomName,
             Description = ucr.Room.Description,
-            NbMembers = ucr.Room.UserChatRooms.Count 
+            NbMembers = ucr.Room.nbMembers,
         }).ToList();
 
         return chatRoomDtos;
@@ -94,7 +94,7 @@ public class ChatRoomRepository : IChatRoomRepository
         {
             RoomName = chatRoom.RoomName,
             Description = chatRoom.Description
-            
+
         };
     }
 
@@ -102,7 +102,7 @@ public class ChatRoomRepository : IChatRoomRepository
     {
         return await _context.messages
             .Where(m => m.RoomId == roomId)
-            .OrderBy(m => m.Timestamp) 
+            .OrderBy(m => m.Timestamp)
             .ToListAsync();
     }
 

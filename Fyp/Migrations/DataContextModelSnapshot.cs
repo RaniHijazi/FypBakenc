@@ -68,6 +68,10 @@ namespace Fyp.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("time")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PostId");
@@ -108,10 +112,6 @@ namespace Fyp.Migrations
 
                     b.Property<int>("Credits")
                         .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MajorId")
                         .HasColumnType("int");
@@ -320,13 +320,15 @@ namespace Fyp.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("RecipientId")
-                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<int?>("RoomId")
                         .HasColumnType("int");
 
                     b.Property<int>("SenderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StoryId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
@@ -342,6 +344,8 @@ namespace Fyp.Migrations
                     b.HasIndex("RoomId");
 
                     b.HasIndex("SenderId");
+
+                    b.HasIndex("StoryId");
 
                     b.HasIndex("UserId");
 
@@ -393,6 +397,31 @@ namespace Fyp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("posts");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Story", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StoryPath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("stories");
                 });
 
             modelBuilder.Entity("Fyp.Models.SubCommunity", b =>
@@ -649,8 +678,7 @@ namespace Fyp.Migrations
                     b.HasOne("Fyp.Models.User", "Recipient")
                         .WithMany()
                         .HasForeignKey("RecipientId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Fyp.Models.ChatRoom", "Room")
                         .WithMany("Messages")
@@ -662,6 +690,10 @@ namespace Fyp.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Fyp.Models.Story", "Story")
+                        .WithMany("Messages")
+                        .HasForeignKey("StoryId");
+
                     b.HasOne("Fyp.Models.User", null)
                         .WithMany("SentMessages")
                         .HasForeignKey("UserId");
@@ -671,6 +703,8 @@ namespace Fyp.Migrations
                     b.Navigation("Room");
 
                     b.Navigation("Sender");
+
+                    b.Navigation("Story");
                 });
 
             modelBuilder.Entity("Fyp.Models.Post", b =>
@@ -694,6 +728,17 @@ namespace Fyp.Migrations
                     b.Navigation("Community");
 
                     b.Navigation("SubCommunity");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Fyp.Models.Story", b =>
+                {
+                    b.HasOne("Fyp.Models.User", "User")
+                        .WithMany("Stories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -802,6 +847,11 @@ namespace Fyp.Migrations
                     b.Navigation("Likes");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Story", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("Fyp.Models.SubCommunity", b =>
                 {
                     b.Navigation("Posts");
@@ -826,6 +876,8 @@ namespace Fyp.Migrations
                     b.Navigation("Posts");
 
                     b.Navigation("SentMessages");
+
+                    b.Navigation("Stories");
 
                     b.Navigation("UserChatRooms");
 

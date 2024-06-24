@@ -16,5 +16,6 @@ namespace Fyp.Models
         public Post Post { get; set; }
         [JsonIgnore]
         public ICollection<Like> Likes { get; set; }
+        public string time { get; set; }
     }
 }

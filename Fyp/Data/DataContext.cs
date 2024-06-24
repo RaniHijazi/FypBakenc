@@ -2,7 +2,7 @@
 using Fyp.Models;
 using Microsoft.EntityFrameworkCore;
 
-    public class DataContext : DbContext
+public class DataContext : DbContext
 {
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
@@ -22,7 +22,8 @@ using Microsoft.EntityFrameworkCore;
     public DbSet<Faculty> faculties { get; set; }
     public DbSet<Major> majors { get; set; }
     public DbSet<Corse> corses { get; set; }
-    
+    public DbSet<Story> stories { get; set; }
+
     public DbSet<DocumentApproval> documents_approval { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -119,4 +120,3 @@ using Microsoft.EntityFrameworkCore;
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
-

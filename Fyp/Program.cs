@@ -13,7 +13,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 var services = builder.Services;
 
 // Add controllers and API explorer
@@ -80,7 +80,7 @@ services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -92,7 +92,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Enable CORS policy
+// Enable CORS policy before authentication and authorization
 app.UseCors("AllowAnyOriginPolicy");
 
 // Authentication and authorization

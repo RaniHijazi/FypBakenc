@@ -5,7 +5,7 @@ namespace Fyp.Models
 {
     public class User
     {
-        public int Id { get; set; }  
+        public int Id { get; set; }
         public string FullName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
@@ -23,7 +23,7 @@ namespace Fyp.Models
         [ForeignKey("CommunityId")]
         public int CommunityId { get; set; }
 
-        
+
         [JsonIgnore]
         public Community Community { get; set; }
         [JsonIgnore]
@@ -50,6 +50,10 @@ namespace Fyp.Models
 
         [JsonIgnore]
         public ICollection<DocumentApproval> DocumentApprovals { get; set; }
+        [JsonIgnore]
+        public ICollection<Story> Stories { get; set; }
+
+
 
     }
 }

@@ -7,13 +7,15 @@ namespace Fyp.Repository
     public class PostRepository:IPostRepository
     {
         private readonly DataContext _context;
+        private readonly BlobStorageService _blobStorageService;
 
-        public PostRepository(DataContext context)
+        public PostRepository(DataContext context, BlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
-        public async Task CreatePrePost(int user_id,int precommunity_id,PostDto dto)
+        public async Task CreatePrePost(int user_id,int precommunity_id,string? Description,IFormFile? image)
         {
             var user=await _context.users.FindAsync(user_id);
             var precommunityId=await _context.communities.FindAsync(precommunity_id);
@@ -29,11 +31,18 @@ namespace Fyp.Repository
                 throw new InvalidOperationException("Community not found");
 
             }
+            string imageUrl = null;
+
+            if (image != null)
+            {
+                
+                imageUrl = await _blobStorageService.UploadImageAsync(image);
+            }
 
             var prepost = new Post
             {
-                Description=dto.Description,
-                ImageUrl=dto.ImageUrl,
+                Description=Description,
+                ImageUrl=imageUrl,
                 LikesCount=0,
                 CommentsCount=0,
                 ShareCount=0,
@@ -47,7 +56,7 @@ namespace Fyp.Repository
 
         }
 
-        public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto)
+        public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto, IFormFile? image)
         {
             var user = await _context.users.FindAsync(user_id);
             var preCommunity = await _context.communities.FindAsync(precommunity_id);
@@ -67,11 +76,18 @@ namespace Fyp.Repository
             {
                 throw new InvalidOperationException("Subcommunity not found");
             }
+            string imageUrl = null;
+
+            if (image != null)
+            {
+
+                imageUrl = await _blobStorageService.UploadImageAsync(image);
+            }
 
             var prepost = new Post
             {
                 Description = dto.Description,
-                ImageUrl = dto.ImageUrl,
+                ImageUrl = imageUrl,
                 LikesCount = 0,
                 CommentsCount = 0,
                 ShareCount = 0,
@@ -123,12 +139,15 @@ namespace Fyp.Repository
                 .Where(p => p.CommunityId == PreCommunityId)
                 .Select(p => new GetPostDto
                 {
+                    Id=p.Id,
                     Description = p.Description,
                     ImageUrl = p.ImageUrl,
                     LikesCount = p.LikesCount,
                     CommentsCount = p.CommentsCount,
                     ShareCount = p.ShareCount,
-                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp))
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
+                    UserFullName = p.User.FullName,
+                    UserProfileImageUrl = p.User.ProfilePath
                 })
                 .ToListAsync();
 
@@ -207,10 +226,10 @@ namespace Fyp.Repository
             {
                 throw new InvalidOperationException("User has already liked this comment");
             }
-            var comment = await _context.posts.FindAsync(comment_id);
+            var comment = await _context.comments.FindAsync(comment_id);
             if (comment == null)
             {
-                throw new InvalidOperationException("Post not found");
+                throw new InvalidOperationException("Comment not found");
             }
             comment.LikesCount += 1;
 
@@ -261,8 +280,8 @@ namespace Fyp.Repository
                 ImageUrl=dto.ImageUrl,
                 LikesCount=0,
                 PostId = post_id,
-                UserId = user_id
-
+                UserId = user_id,
+                time= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
             _context.comments.Add(comment);
@@ -325,24 +344,73 @@ namespace Fyp.Repository
             return nb;
         }
 
-        public async Task<IEnumerable<GetCommentDto>> GetAllCommentsWithDetails()
+        public async Task<IEnumerable<GetCommentDto>> GetAllCommentsWithDetails(int postId)
         {
-           
             var commentsWithDetails = await _context.comments
+                .Where(comment => comment.PostId == postId)  
                 .Include(comment => comment.User)
                 .Select(comment => new GetCommentDto
                 {
+                    id=comment.Id,
                     Description = comment.Description,
                     ImageUrl = comment.ImageUrl,
                     UserName = comment.User.FullName,
                     UserProfilePath = comment.User.ProfilePath,
-                    LikesCount = comment.LikesCount
+                    LikesCount = comment.LikesCount,
+                    time = CalculateTimeAgo(DateTime.Parse(comment.time))
                 })
                 .ToListAsync();
 
             return commentsWithDetails;
         }
+
+
+        public async Task<bool> HasUserLikedPost(int postId, int userId)
+        {
+            var existingLike = await _context.likes
+                .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+
+            return existingLike != null;
+        }
+
+        public async Task<bool> HasUserLikedComment(int commentId, int userId)
+        {
+            var existingLike = await _context.likes
+                .FirstOrDefaultAsync(l => l.CommentId == commentId && l.UserId == userId);
+
+            return existingLike != null;
+        }
+
+        public async Task<List<GetPostDto>> GetUserPosts(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            var posts = await _context.posts
+                .Where(p => p.UserId == userId)
+                .Select(p => new GetPostDto
+                {
+                    Id = p.Id,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
+                    LikesCount = p.LikesCount,
+                    CommentsCount = p.CommentsCount,
+                    ShareCount = p.ShareCount,
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
+                    UserFullName = p.User.FullName,
+                    UserProfileImageUrl = p.User.ProfilePath
+                })
+                .ToListAsync();
+
+            return posts;
+        }
     }
+
+
+
 
 }
 

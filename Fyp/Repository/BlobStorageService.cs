@@ -54,4 +54,26 @@ public class BlobStorageService
         await _context.SaveChangesAsync();
     }
 
+    public async Task<string> UploadStoryAsync(IFormFile story)
+    {
+        if (story == null || story.Length == 0)
+            throw new ArgumentException("Invalid story file");
+
+        BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        await containerClient.CreateIfNotExistsAsync();
+
+        string blobName = Guid.NewGuid().ToString() + "_" + story.FileName;
+        BlobClient blobClient = containerClient.GetBlobClient(blobName);
+
+        using (var stream = story.OpenReadStream())
+        {
+            await blobClient.UploadAsync(stream);
+        }
+
+        return blobClient.Uri.ToString();
+    }
+
+    
+
+
 }

@@ -22,10 +22,10 @@ public class MessageRepository : IMessageRepository
         return message;
     }
 
-    public async Task<List<MessageDto>> GetMessagesBySenderId(int senderId)
+    public async Task<List<MessageDto>> GetMessagesBySenderId(int senderId, int recipientId)
     {
         return await _context.messages
-            .Where(m => m.SenderId == senderId)
+            .Where(m => m.SenderId == senderId && m.RecipientId == recipientId)
             .OrderBy(m => m.Timestamp)
             .Select(m => new MessageDto
             {
@@ -36,6 +36,7 @@ public class MessageRepository : IMessageRepository
             })
             .ToListAsync();
     }
+
 
     public async Task<List<MessageDto>> GetMessagesByRecipientId(int recipientId)
     {
@@ -51,7 +52,7 @@ public class MessageRepository : IMessageRepository
             })
             .ToListAsync();
     }
-    
+
     public async Task<List<MessageDto>> GetRoomMessages(int roomId)
     {
         return await _context.messages
@@ -66,5 +67,5 @@ public class MessageRepository : IMessageRepository
             })
             .ToListAsync();
     }
-   
+
 }

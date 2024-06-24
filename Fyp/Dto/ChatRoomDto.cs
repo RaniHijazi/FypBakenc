@@ -5,6 +5,6 @@
         public string RoomName { get; set; }
 
         public string Description { get; set; }
-       
+
     }
 }

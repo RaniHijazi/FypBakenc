@@ -19,7 +19,7 @@ public class ChatHub : Hub
 
     public async Task SendMessageToUser(int senderId, int recipientId, string messageContent)
     {
-        
+
         var sender = await _userRepository.GetUserByIdAsync(senderId);
         var recipient = await _userRepository.GetUserByIdAsync(recipientId);
 
@@ -28,7 +28,7 @@ public class ChatHub : Hub
             throw new ArgumentException("Sender or recipient not found.");
         }
 
-        
+
         var message = new Message
         {
             SenderId = senderId,
@@ -39,13 +39,13 @@ public class ChatHub : Hub
 
         await _messageRepository.AddMessage(message);
 
-        
+
         await Clients.Users(senderId.ToString(), recipientId.ToString()).SendAsync("ReceiveMessage", message);
     }
 
     public async Task SendMessageToRoom(int senderId, int roomId, string messageContent)
     {
-       
+
         var sender = await _userRepository.GetUserByIdAsync(senderId);
         var room = await _context.chat_rooms.FindAsync(roomId);
 
@@ -64,7 +64,7 @@ public class ChatHub : Hub
 
         await _messageRepository.AddMessage(message);
 
-  
+
         await Clients.Group(roomId.ToString()).SendAsync("ReceiveRoomMessage", message);
     }
 

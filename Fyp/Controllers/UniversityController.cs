@@ -16,9 +16,9 @@ namespace Fyp.Controllers
         }
 
         [HttpPost("faculties")]
-        public async Task<ActionResult<Faculty>> AddFaculty([FromBody] FacultyDto facultyDto)
+        public async Task<ActionResult<Faculty>> AddFaculty([FromForm] SaveUrlRequest2 request3)
         {
-            var faculty = await _universityRepository.AddFaculty(facultyDto);
+            var faculty = await _universityRepository.AddFaculty(request3.Description, request3.Image);
             return Ok(faculty);
         }
 
@@ -78,4 +78,11 @@ namespace Fyp.Controllers
             return Ok(courses);
         }
     }
+}
+public class SaveUrlRequest3
+{
+    public IFormFile Image { get; set; }
+    
+    public string Description { get; set; }
+
 }

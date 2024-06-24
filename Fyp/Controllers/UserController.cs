@@ -22,12 +22,14 @@ namespace Fyp.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
         private readonly BlobStorageService _blobStorageService;
+        private readonly DataContext _context;
 
-        public UserController(IUserRepository userRepository, IConfiguration configuration, BlobStorageService blobStorageService)
+        public UserController(IUserRepository userRepository, IConfiguration configuration, BlobStorageService blobStorageService, DataContext context)
         {
             _userRepository = userRepository;
             _configuration = configuration;
             _blobStorageService = blobStorageService;
+            _context = context;
         }
 
         private async Task<string> CreateToken(User user)
@@ -87,6 +89,7 @@ namespace Fyp.Controllers
                 return StatusCode(500, "An error occurred while processing the request");
             }
         }
+
         [HttpGet("{userId}")]
         public async Task<ActionResult<User>> GetUserById(int userId)
         {
@@ -100,11 +103,11 @@ namespace Fyp.Controllers
             return user;
         }
 
-       
-     
 
 
-    [HttpPost("signin")]
+
+
+        [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInDto signInDto)
         {
             try
@@ -182,11 +185,100 @@ namespace Fyp.Controllers
                 return StatusCode(500, $"Failed to save user profile image URL: {ex.Message}");
             }
         }
+        [HttpGet("{userId}/profile")]
+        public async Task<ActionResult<UserProfileDto>> GetUserProfile(int userId)
+        {
+            try
+            {
+                var userProfile = await _userRepository.GetUserProfile(userId);
+                return Ok(userProfile);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
+
+        [HttpGet("{followerId}/isFollowing/{followedId}")]
+        public async Task<IActionResult> IsFollowing(int followerId, int followedId)
+        {
+            try
+            {
+                var isFollowing = await _userRepository.IsFollowingAsync(followerId, followedId);
+                return Ok(isFollowing);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+        [HttpPost("uploadStory")]
+        public async Task<IActionResult> UploadStory([FromForm] SaveUrlStoryRequest request)
+        {
+            try
+            {
+                var story = new Story
+                {
+                    UserId = request.UserId,
+                    StoryPath = await _blobStorageService.UploadStoryAsync(request.Story),
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.stories.Add(story);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = "Story uploaded successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/getFollowingStories")]
+        public async Task<IActionResult> GetFollowingStories(int userId)
+        {
+            try
+            {
+                var stories = await _userRepository.GetStoriesAsync(userId);  
+                return Ok(stories);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/following")]
+        public async Task<IActionResult> GetFollowingUsers(int userId)
+        {
+            try
+            {
+                var followingUsers = await _userRepository.GetFollowingUsersAsync(userId);
+                return Ok(followingUsers);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+
     }
     public class SaveUrlRequest
     {
         public int UserId { get; set; }
         public IFormFile Image { get; set; }
+       
+    }
+    public class SaveUrlStoryRequest
+    {
+        public int UserId { get; set; }
+        public IFormFile Story { get; set; }
     }
 
 

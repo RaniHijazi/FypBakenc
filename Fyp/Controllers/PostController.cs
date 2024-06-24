@@ -21,26 +21,27 @@ namespace Fyp.Controllers
             _repository = repository;
         }
 
-        [HttpPost("CreatePost")]
-        public async Task<IActionResult> CreatePrePost(int user_id, int precommunity_id, PostDto dto)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreatePost( [FromForm] SaveUrlRequest2 request2)
         {
             try
             {
-                await _repository.CreatePrePost(user_id, precommunity_id, dto);
-                return Ok("Post created successfully.");
+                await _repository.CreatePrePost(request2.UserId, request2.CommunityId,request2.Description, request2.Image);
+                return Ok("Post created successfully");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error creating post: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
 
+
         [HttpPost("CreateSubPost")]
-        public async Task<IActionResult> CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto)
+        public async Task<IActionResult> CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto, IFormFile? image)
         {
             try
             {
-                await _repository.CreatePreSubPosts(user_id, precommunity_id, presubcommunity_id, dto);
+                await _repository.CreatePreSubPosts(user_id, precommunity_id, presubcommunity_id, dto, image);
                 return Ok("Subpost created successfully.");
             }
             catch (Exception ex)
@@ -48,6 +49,8 @@ namespace Fyp.Controllers
                 return StatusCode(500, $"Error creating subpost: {ex.Message}");
             }
         }
+
+
 
         [HttpDelete("DeletePost")]
         public async Task<IActionResult> DeletePost(int post_id)
@@ -189,17 +192,17 @@ namespace Fyp.Controllers
             }
         }
 
-        [HttpGet("AllCommentsWithDetails")]
-        public async Task<IActionResult> GetAllCommentsWithDetails()
+        [HttpGet("post/{postId}")]
+        public async Task<ActionResult<IEnumerable<GetCommentDto>>> GetCommentsForPost(int postId)
         {
             try
             {
-                var comments = await _repository.GetAllCommentsWithDetails();
+                var comments = await _repository.GetAllCommentsWithDetails(postId);
                 return Ok(comments);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error getting comments with details: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 
@@ -217,6 +220,34 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpGet("{postId}/hasLiked")]
+        public async Task<IActionResult> HasUserLikedPost(int postId, [FromQuery] int userId)
+        {
+            try
+            {
+                bool hasLiked = await _repository.HasUserLikedPost(postId, userId);
+                return Ok(hasLiked);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{commentId}/hasCommented")]
+        public async Task<IActionResult> HasUserLikedComment(int commentId, [FromQuery] int userId)
+        {
+            try
+            {
+                bool hasCommented = await _repository.HasUserLikedComment(commentId, userId);
+                return Ok(hasCommented);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("PreSubPosts")]
         public async Task<IActionResult> GetPreSubPosts(int PreCommunityId, int subCommunityId)
         {
@@ -230,5 +261,36 @@ namespace Fyp.Controllers
                 return StatusCode(500, $"Error getting pre sub posts: {ex.Message}");
             }
         }
-    }
+
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<List<GetPostDto>>> GetUserPosts(int userId)
+        {
+            try
+            {
+                var posts = await _repository.GetUserPosts(userId);
+                if (posts == null || posts.Count == 0)
+                {
+                    return NotFound("No posts found for the specified user.");
+                }
+                return Ok(posts);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
+    
+}
+}
+public class SaveUrlRequest2
+{  
+    public IFormFile? Image { get; set; }
+    public int CommunityId { get; set; }
+    public int UserId { get; set; }
+    public string? Description { get; set; }
+
 }
