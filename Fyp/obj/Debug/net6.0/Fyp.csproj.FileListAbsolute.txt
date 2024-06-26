@@ -192,3 +192,7 @@ C:\Users\Dell\Desktop\fyp backend\FypBakenc\Fyp\obj\Debug\net6.0\refint\Fyp.dll
 C:\Users\Dell\Desktop\fyp backend\FypBakenc\Fyp\obj\Debug\net6.0\Fyp.pdb
 C:\Users\Dell\Desktop\fyp backend\FypBakenc\Fyp\obj\Debug\net6.0\Fyp.genruntimeconfig.cache
 C:\Users\Dell\Desktop\fyp backend\FypBakenc\Fyp\obj\Debug\net6.0\ref\Fyp.dll
+C:\Users\User Pc\source\repos\Fyp\Fyp\bin\Debug\net6.0\Hangfire.AspNetCore.dll
+C:\Users\User Pc\source\repos\Fyp\Fyp\bin\Debug\net6.0\Hangfire.Core.dll
+C:\Users\User Pc\source\repos\Fyp\Fyp\bin\Debug\net6.0\Hangfire.NetCore.dll
+C:\Users\User Pc\source\repos\Fyp\Fyp\bin\Debug\net6.0\Hangfire.SqlServer.dll

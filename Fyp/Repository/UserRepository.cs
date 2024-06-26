@@ -243,7 +243,7 @@ namespace Fyp.Repository
 
 
 
-        public async Task<List<GetStoryDto>> GetStoriesAsync(int userId)
+        public async Task<List<GetUserStoriesDto>> GetStoriesAsync(int userId)
         {
             var followedUserIds = await _context.Follows
                 .Where(f => f.FollowerId == userId)
@@ -253,19 +253,26 @@ namespace Fyp.Repository
             var stories = await _context.stories
                 .Where(s => followedUserIds.Contains(s.UserId))
                 .Include(s => s.User)
-                .Select(s => new GetStoryDto
-                {
-                    Id = s.Id,
-                    UserId = s.UserId,
-                    UserFullName = s.User.FullName,
-                    UserProfileImageUrl = s.User.ProfilePath,
-                    StoryPath = s.StoryPath,
-                    CreatedAt = s.CreatedAt
-                })
                 .OrderByDescending(s => s.CreatedAt)
                 .ToListAsync();
 
-            return stories;
+            var groupedStories = stories
+                .GroupBy(s => new { s.UserId, s.User.FullName, s.User.ProfilePath })
+                .Select(g => new GetUserStoriesDto
+                {
+                    UserId = g.Key.UserId,
+                    UserFullName = g.Key.FullName,
+                    UserProfileImageUrl = g.Key.ProfilePath,
+                    Stories = g.Select(s => new GetStoryDto
+                    {
+                        Id = s.Id,
+                        StoryPath = s.StoryPath,
+                        CreatedAt = s.CreatedAt
+                    }).ToList()
+                })
+                .ToList();
+
+            return groupedStories;
         }
 
 
@@ -285,7 +292,19 @@ namespace Fyp.Repository
             return followingUsers;
         }
 
+        public async Task DeleteOldStoriesAsync()
+        {
+            var now = DateTime.UtcNow;
+            var oldStories = await _context.stories
+                .Where(s => s.CreatedAt < now.AddHours(-24))
+                .ToListAsync();
 
+            if (oldStories.Any())
+            {
+                _context.stories.RemoveRange(oldStories);
+                await _context.SaveChangesAsync();
+            }
+        }
 
 
     }

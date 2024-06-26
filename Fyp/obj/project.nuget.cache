@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "1GwTAiKA4hR4UofafCQU0QY7BFv+yTgsXz5DHOhnum3qYs/hoNWqL0RDjCDIfmmfyfW1VbZF/wKlOOQGC5WqCg==",
+  "dgSpecHash": "+GM8k5GZ8SjFnz7pfpNevJvLGzjGnjLonFWxjuv79EsaG7lOxQc0ys5WDgrodJA+JyDAnz08avMXpv4KiXap4A==",
   "success": true,
   "projectFilePath": "C:\\Users\\User Pc\\source\\repos\\Fyp\\Fyp\\Fyp.csproj",
   "expectedPackageFiles": [
@@ -15,6 +15,11 @@
     "C:\\Users\\User Pc\\.nuget\\packages\\fluentemail.mailgun\\3.0.2\\fluentemail.mailgun.3.0.2.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\fparsec\\1.0.1\\fparsec.1.0.1.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\fsharp.core\\3.1.2.5\\fsharp.core.3.1.2.5.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\hangfire\\1.8.14\\hangfire.1.8.14.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\hangfire.aspnetcore\\1.8.14\\hangfire.aspnetcore.1.8.14.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\hangfire.core\\1.8.14\\hangfire.core.1.8.14.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\hangfire.netcore\\1.8.14\\hangfire.netcore.1.8.14.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\hangfire.sqlserver\\1.8.14\\hangfire.sqlserver.1.8.14.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\hopac\\0.3.0\\hopac.0.3.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\http.fs\\3.0.6\\http.fs.3.0.6.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
@@ -59,8 +64,8 @@
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.dependencyinjection\\6.0.0\\microsoft.extensions.dependencyinjection.6.0.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\6.0.0\\microsoft.extensions.dependencyinjection.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.dependencymodel\\2.1.0\\microsoft.extensions.dependencymodel.2.1.0.nupkg.sha512",
-    "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\2.2.0\\microsoft.extensions.fileproviders.abstractions.2.2.0.nupkg.sha512",
-    "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\2.2.0\\microsoft.extensions.hosting.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\3.0.0\\microsoft.extensions.fileproviders.abstractions.3.0.0.nupkg.sha512",
+    "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.hosting.abstractions\\3.0.0\\microsoft.extensions.hosting.abstractions.3.0.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.logging\\6.0.0\\microsoft.extensions.logging.6.0.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\6.0.0\\microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\User Pc\\.nuget\\packages\\microsoft.extensions.objectpool\\2.2.0\\microsoft.extensions.objectpool.2.2.0.nupkg.sha512",
@@ -147,12 +152,6 @@
     "C:\\Users\\User Pc\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512"
   ],
   "logs": [
-    {
-      "code": "Undefined",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "Problem reading the cache file C:\\Users\\User Pc\\source\\repos\\Fyp\\Fyp\\obj\\project.nuget.cache : After parsing a value an unexpected character was encountered: \". Path 'expectedPackageFiles[140]', line 148, position 4."
-    },
     {
       "code": "NU1603",
       "level": "Warning",

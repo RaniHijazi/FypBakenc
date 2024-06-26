@@ -1,5 +1,7 @@
 using Fyp.Interfaces;
 using Fyp.Repository;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -33,6 +35,24 @@ services.AddScoped<IMessageRepository, MessageRepository>();
 services.AddScoped<IUniversityRepository, UniversityRepository>();
 services.AddScoped<IDocumentRepository, DocumentRepository>();
 services.AddScoped<BlobStorageService>();
+
+// Add Hangfire services
+services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseDefaultTypeSerializer()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new SqlServerStorageOptions
+    {
+        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+        QueuePollInterval = TimeSpan.FromSeconds(15),
+        UseRecommendedIsolationLevel = true,
+        UsePageLocksOnDequeue = true,
+        DisableGlobalLocks = true
+    }));
+
+// Add the processing server as IHostedService
+services.AddHangfireServer();
 
 // Configure Swagger
 builder.Services.AddSwaggerGen(options =>
@@ -104,6 +124,10 @@ app.MapControllers();
 
 // Map SignalR hub(s)
 app.MapHub<ChatHub>("/chatHub");
+
+// Configure Hangfire dashboard
+app.UseHangfireDashboard();
+RecurringJob.AddOrUpdate<IUserRepository>("delete-old-stories", x => x.DeleteOldStoriesAsync(), Cron.Hourly);
 
 // Run the application
 app.Run();
