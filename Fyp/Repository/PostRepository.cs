@@ -147,7 +147,9 @@ namespace Fyp.Repository
                     ShareCount = p.ShareCount,
                     Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
                     UserFullName = p.User.FullName,
-                    UserProfileImageUrl = p.User.ProfilePath
+                    UserProfileImageUrl = p.User.ProfilePath,
+                    UserId=p.UserId
+
                 })
                 .ToListAsync();
 

@@ -22,18 +22,19 @@ namespace Fyp.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreatePost( [FromForm] SaveUrlRequest2 request2)
+        public async Task<IActionResult> CreatePost([FromForm] SaveUrlRequest2 request2)
         {
             try
             {
-                await _repository.CreatePrePost(request2.UserId, request2.CommunityId,request2.Description, request2.Image);
-                return Ok("Post created successfully");
+                await _repository.CreatePrePost(request2.UserId, request2.CommunityId, request2.Description, request2.Image);
+                return Ok(new { message = "Post created successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
             }
         }
+
 
 
         [HttpPost("CreateSubPost")]

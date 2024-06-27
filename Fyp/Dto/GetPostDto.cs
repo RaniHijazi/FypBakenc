@@ -11,5 +11,6 @@
         public string Timestamp { get; set; }
         public string UserFullName { get; set; }
         public string UserProfileImageUrl { get; set; }
+        public int UserId { get; set; }
     }
 }
