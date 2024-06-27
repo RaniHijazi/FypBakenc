@@ -195,11 +195,11 @@ namespace Fyp.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                return StatusCode(500, new { error = "Internal server error: " + ex.Message });
             }
         }
 
