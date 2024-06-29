@@ -275,6 +275,24 @@ namespace Fyp.Repository
             return groupedStories;
         }
 
+        public async Task<List<GetStoryDto>> GetUserStoriesByIdAsync(int userId)
+        {
+            var userStories = await _context.stories
+                .Where(s => s.UserId == userId)
+                .OrderByDescending(s => s.CreatedAt)
+                .ToListAsync();
+
+            var storyDtos = userStories.Select(s => new GetStoryDto
+            {
+                Id = s.Id,
+                StoryPath = s.StoryPath,
+                CreatedAt = s.CreatedAt
+            }).ToList();
+
+            return storyDtos;
+        }
+
+
 
         public async Task<List<FollowingUserDto>> GetFollowingUsersAsync(int userId)
         {

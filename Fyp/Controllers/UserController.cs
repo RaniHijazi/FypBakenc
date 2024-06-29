@@ -185,6 +185,7 @@ namespace Fyp.Controllers
                 return StatusCode(500, $"Failed to save user profile image URL: {ex.Message}");
             }
         }
+
         [HttpGet("{userId}/profile")]
         public async Task<ActionResult<UserProfileDto>> GetUserProfile(int userId)
         {
@@ -195,11 +196,11 @@ namespace Fyp.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(ex.Message);
+                return NotFound(new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Internal server error: " + ex.Message);
+                return StatusCode(500, new { error = "Internal server error: " + ex.Message });
             }
         }
 
@@ -250,6 +251,24 @@ namespace Fyp.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("{userId}/stories")]
+        public async Task<ActionResult<List<GetStoryDto>>> GetUserStories(int userId)
+        {
+            try
+            {
+                var stories = await _userRepository.GetUserStoriesByIdAsync(userId);
+                if (stories == null || stories.Count == 0)
+                {
+                    return NotFound("No stories found for this user.");
+                }
+                return Ok(stories);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
 

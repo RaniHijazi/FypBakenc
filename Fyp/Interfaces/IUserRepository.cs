@@ -18,8 +18,9 @@ namespace Fyp.Interfaces
         Task<UserProfileDto> GetUserProfile(int userId);
         Task<bool> IsFollowingAsync(int followerId, int followedId);
         Task<List<GetUserStoriesDto>> GetStoriesAsync(int userId);
+        Task<List<GetStoryDto>> GetUserStoriesByIdAsync(int userId);
         Task<List<FollowingUserDto>> GetFollowingUsersAsync(int userId);
 
-        Task DeleteOldStoriesAsync();  // New method for deleting old stories
+        Task DeleteOldStoriesAsync();  
     }
 }
