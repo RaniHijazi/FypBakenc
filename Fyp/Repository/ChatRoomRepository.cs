@@ -9,10 +9,12 @@ using Fyp.Dto;
 public class ChatRoomRepository : IChatRoomRepository
 {
     private readonly DataContext _context;
+    private readonly BlobStorageService _blobStorageService;
 
-    public ChatRoomRepository(DataContext context)
+    public ChatRoomRepository(DataContext context, BlobStorageService blobStorageService)
     {
         _context = context;
+        _blobStorageService = blobStorageService;
     }
 
     public async Task<ChatRoom> CreateChatRoom(ChatRoomDto dto, int userId)
@@ -20,7 +22,7 @@ public class ChatRoomRepository : IChatRoomRepository
         var room = new ChatRoom
         {
             RoomName = dto.RoomName,
-            Description = dto.Description,
+            
             nbMembers = 1
         };
 
@@ -74,7 +76,7 @@ public class ChatRoomRepository : IChatRoomRepository
         var chatRoomDtos = userChatRooms.Select(ucr => new ChatRoomDto2
         {
             RoomName = ucr.Room.RoomName,
-            Description = ucr.Room.Description,
+           
             NbMembers = ucr.Room.nbMembers,
         }).ToList();
 
@@ -93,10 +95,46 @@ public class ChatRoomRepository : IChatRoomRepository
         return new ChatRoomDto
         {
             RoomName = chatRoom.RoomName,
-            Description = chatRoom.Description
+            
 
         };
     }
+
+    public async Task<ChatRoom> CreateChatRoomWithUsers(string chatRoomName, int creatorUserId, List<int> userIds, IFormFile? image)
+    {
+        string imageUrl = null;
+
+        if (image != null)
+        {
+
+            imageUrl = await _blobStorageService.UploadImageAsync(image);
+        }
+        var room = new ChatRoom
+        {
+            RoomName = chatRoomName,
+            DateOfCreate=DateTime.Now,
+            ProfilePath=imageUrl,
+            nbMembers = userIds.Count + 1 
+        };
+
+        _context.chat_rooms.Add(room);
+        await _context.SaveChangesAsync();
+
+        var userChatRooms = new List<UserChatRoom>
+    {
+        new UserChatRoom { UserId = creatorUserId, RoomId = room.Id }
+    };
+
+        userChatRooms.AddRange(userIds.Select(userId => new UserChatRoom { UserId = userId, RoomId = room.Id }));
+
+        _context.user_chat_rooms.AddRange(userChatRooms);
+        await _context.SaveChangesAsync();
+
+        return room;
+    }
+
+
+
 
     public async Task<List<Message>> GetRoomMessages(int roomId)
     {

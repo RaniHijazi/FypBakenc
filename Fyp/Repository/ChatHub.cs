@@ -3,13 +3,14 @@ using System;
 using System.Threading.Tasks;
 using Fyp.Models;
 using Fyp.Interfaces;
+using System.Collections.Concurrent;
 
 public class ChatHub : Hub
 {
     private readonly IMessageRepository _messageRepository;
     private readonly IUserRepository _userRepository;
     private readonly DataContext _context;
-
+    private static ConcurrentDictionary<string, string> connectedUsers = new ConcurrentDictionary<string, string>();
     public ChatHub(IMessageRepository messageRepository, IUserRepository userRepository, DataContext context)
     {
         _messageRepository = messageRepository;
@@ -19,7 +20,6 @@ public class ChatHub : Hub
 
     public async Task SendMessageToUser(int senderId, int recipientId, string messageContent)
     {
-
         var sender = await _userRepository.GetUserByIdAsync(senderId);
         var recipient = await _userRepository.GetUserByIdAsync(recipientId);
 
@@ -27,7 +27,6 @@ public class ChatHub : Hub
         {
             throw new ArgumentException("Sender or recipient not found.");
         }
-
 
         var message = new Message
         {
@@ -38,14 +37,11 @@ public class ChatHub : Hub
         };
 
         await _messageRepository.AddMessage(message);
-
-
-        await Clients.Users(senderId.ToString(), recipientId.ToString()).SendAsync("ReceiveMessage", message);
+        await Clients.Users(senderId.ToString(), recipientId.ToString()).SendAsync("ReceiveMessage", message.Content, message.SenderId, message.RecipientId, message.Timestamp);
+        Console.WriteLine($"SendMessageToUser: Sent message to {recipientId} with content: {messageContent}");
     }
-
     public async Task SendMessageToRoom(int senderId, int roomId, string messageContent)
     {
-
         var sender = await _userRepository.GetUserByIdAsync(senderId);
         var room = await _context.chat_rooms.FindAsync(roomId);
 
@@ -63,22 +59,20 @@ public class ChatHub : Hub
         };
 
         await _messageRepository.AddMessage(message);
-
-
         await Clients.Group(roomId.ToString()).SendAsync("ReceiveRoomMessage", message);
     }
 
-    public override async Task OnConnectedAsync()
+   public override async Task OnConnectedAsync()
     {
-        var userId = Context.UserIdentifier;
-        if (userId != null)
+        var userId = Context.GetHttpContext().Request.Query["userId"];
+        if (!string.IsNullOrEmpty(userId))
         {
-            var user = await _context.users.FindAsync(int.Parse(userId));
-            if (user != null)
-            {
-                user.MemberStatus = "Online";
-                await _context.SaveChangesAsync();
-            }
+            connectedUsers.TryAdd(Context.ConnectionId, userId);
+            Console.WriteLine($"User connected: {userId}");
+        }
+        else
+        {
+            Console.WriteLine("User identifier is null or empty.");
         }
 
         await base.OnConnectedAsync();
@@ -86,17 +80,22 @@ public class ChatHub : Hub
 
     public override async Task OnDisconnectedAsync(Exception exception)
     {
-        var userId = Context.UserIdentifier;
-        if (userId != null)
+        if (connectedUsers.TryRemove(Context.ConnectionId, out var userId))
         {
-            var user = await _context.users.FindAsync(int.Parse(userId));
-            if (user != null)
-            {
-                user.MemberStatus = "Offline";
-                await _context.SaveChangesAsync();
-            }
+            Console.WriteLine($"User disconnected: {userId}");
+        }
+        else
+        {
+            Console.WriteLine("User connection ID not found in connected users list.");
         }
 
         await base.OnDisconnectedAsync(exception);
+    }
+
+
+    public Task<string[]> GetConnectedUsers()
+    {
+        // Return the list of connected user IDs
+        return Task.FromResult(connectedUsers.Values.ToArray());
     }
 }

@@ -50,8 +50,8 @@ namespace Fyp.Controllers
                 };
 
                 await _messageRepository.AddMessage(message);
-
-                await _hubContext.Clients.Users(senderId.ToString(), recipientId.ToString()).SendAsync("ReceiveMessage", message);
+                await _hubContext.Clients.Users(senderId.ToString(), recipientId.ToString()).SendAsync("ReceiveMessage", message.Content, message.SenderId, message.RecipientId, message.Timestamp);
+                Console.WriteLine($"SendMessageToUser: Sent message to {recipientId} with content: {messageContent}");
 
                 return Ok(message);
             }
@@ -60,6 +60,7 @@ namespace Fyp.Controllers
                 return BadRequest($"Failed to send message: {ex.Message}");
             }
         }
+
 
         [HttpPost("sendToRoom")]
         public async Task<IActionResult> SendMessageToRoom(int senderId, int roomId, string messageContent)
@@ -159,6 +160,18 @@ namespace Fyp.Controllers
                 return BadRequest($"Failed to retrieve room messages: {ex.Message}");
             }
         }
+
+        [HttpGet("{userId}")]
+        public async Task<IActionResult> GetUserMessages(int userId)
+        {
+            var messages = await _context.messages
+                .Where(m => m.SenderId == userId || m.RecipientId == userId)
+                .OrderBy(m => m.Timestamp)
+                .ToListAsync();
+
+            return Ok(messages);
+        }
+
 
         [HttpPost("replyToStory")]
         public async Task<IActionResult> ReplyToStory([FromBody] ReplyToStoryRequest request)

@@ -224,12 +224,14 @@ namespace Fyp.Repository
 
             return new UserProfileDto
             {
+                Id=user.Id,
                 Bio=user.Bio,
                 FullName=user.FullName,
                 ProfilePath=user.ProfilePath,
                 Role=user.Role,
                 TotalFollowers=user.TotalFollowers,
                 TotalFollowing=user.TotalFollowing,
+                JoinDate = user.JoinDate
 
             };
         }
