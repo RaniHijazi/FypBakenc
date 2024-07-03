@@ -1,6 +1,8 @@
 ﻿using Fyp.Dto;
 using Fyp.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Fyp.Repository
 {
@@ -8,11 +10,13 @@ namespace Fyp.Repository
     {
         private readonly DataContext _context;
         private readonly BlobStorageService _blobStorageService;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public PostRepository(DataContext context, BlobStorageService blobStorageService)
+        public PostRepository(DataContext context, BlobStorageService blobStorageService, IHubContext<ChatHub> hubContext)
         {
             _context = context;
             _blobStorageService = blobStorageService;
+            _hubContext = hubContext;
         }
 
         public async Task CreatePrePost(int user_id,int precommunity_id,string? Description,IFormFile? image)
@@ -56,7 +60,7 @@ namespace Fyp.Repository
 
         }
 
-        public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto, IFormFile? image)
+        public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, string? Description, IFormFile? image)
         {
             var user = await _context.users.FindAsync(user_id);
             var preCommunity = await _context.communities.FindAsync(precommunity_id);
@@ -86,7 +90,7 @@ namespace Fyp.Repository
 
             var prepost = new Post
             {
-                Description = dto.Description,
+                Description = Description,
                 ImageUrl = imageUrl,
                 LikesCount = 0,
                 CommentsCount = 0,
@@ -162,12 +166,16 @@ namespace Fyp.Repository
                 .Where(p => p.CommunityId == PreCommunityId && p.SubCommunityId == subCommunityId)
                 .Select(p => new GetPostDto
                 {
+                    Id = p.Id,
                     Description = p.Description,
                     ImageUrl = p.ImageUrl,
                     LikesCount = p.LikesCount,
                     CommentsCount = p.CommentsCount,
                     ShareCount = p.ShareCount,
-                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp))
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
+                    UserFullName = p.User.FullName,
+                    UserProfileImageUrl = p.User.ProfilePath,
+                    UserId = p.UserId,
                 })
                 .ToListAsync();
 
@@ -183,7 +191,7 @@ namespace Fyp.Repository
                 throw new InvalidOperationException("User has already liked this post");
             }
 
-            var post = await _context.posts.FindAsync(post_id);
+            var post = await _context.posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == post_id);
             if (post == null)
             {
                 throw new InvalidOperationException("Post not found");
@@ -199,8 +207,26 @@ namespace Fyp.Repository
 
             _context.likes.Add(like);
             await _context.SaveChangesAsync();
-        }
 
+           
+            Console.WriteLine($"Post liked by user {user_id}. Sending notification to user {post.UserId}.");
+
+          
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == post.UserId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"Your post has been liked by user {user_id}");
+                }
+                Console.WriteLine($"Notification sent to user {post.UserId}.");
+            }
+            else
+            {
+                Console.WriteLine($"User {post.UserId} is not connected.");
+            }
+        }
         public async Task DislikePost(int post_id, int user_id)
         {
             var like = await _context.likes.FirstOrDefaultAsync(l => l.PostId == post_id && l.UserId == user_id);
@@ -383,6 +409,35 @@ namespace Fyp.Repository
             return existingLike != null;
         }
 
+        public async Task<List<GetPostDto>> GetPostsOfAllSubcommunities(int preCommunityId)
+        {
+        
+            var subCommunities = await _context.sub_communities
+                .Where(sc => sc.CommunityID == preCommunityId)
+                .Select(sc => sc.ID)
+                .ToListAsync();
+
+          
+            var posts = await _context.posts
+                .Where(p => subCommunities.Contains((int)p.SubCommunityId))
+                .Select(p => new GetPostDto
+                {
+                    Id = p.Id,
+                    Description = p.Description,
+                    ImageUrl = p.ImageUrl,
+                    LikesCount = p.LikesCount,
+                    CommentsCount = p.CommentsCount,
+                    ShareCount = p.ShareCount,
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
+                    UserFullName = p.User.FullName,
+                    UserProfileImageUrl = p.User.ProfilePath,
+                    UserId = p.UserId
+                })
+                .ToListAsync();
+
+            return posts;
+        }
+
         public async Task<List<GetPostDto>> GetUserPosts(int userId)
         {
             var user = await _context.users.FindAsync(userId);
@@ -408,8 +463,11 @@ namespace Fyp.Repository
                 .ToListAsync();
 
             return posts;
+
         }
     }
+
+
 
 
 

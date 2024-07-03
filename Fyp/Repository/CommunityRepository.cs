@@ -7,10 +7,12 @@ namespace Fyp.Repository
     public class CommunityRepository: ICommunityRepository
     {
         private readonly DataContext _context;
+        private readonly BlobStorageService _blobStorageService;
 
-        public CommunityRepository(DataContext context)
+        public CommunityRepository(DataContext context, BlobStorageService blobStorageService)
         {
             _context = context;
+            _blobStorageService = blobStorageService;
         }
 
         public async Task CreateCommunity(CommunityDto dto)
@@ -37,7 +39,7 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task CreateSubCommunity(int preId,string name)
+        public async Task CreateSubCommunity(int preId,string name,string description,IFormFile? image)
         {
             var precommunity = await _context.communities.FirstOrDefaultAsync(pre => pre.Id == preId);
             if (precommunity == null)
@@ -45,10 +47,21 @@ namespace Fyp.Repository
                 throw new InvalidOperationException("Didn't found the main community");
             }
 
+            string imageUrl = null;
+            if (image != null)
+            {
+
+                imageUrl = await _blobStorageService.UploadImageAsync(image);
+            }
+
             var presub = new SubCommunity
             {
                 Name = name,
-                 CommunityID = preId,    
+                ImageUrl = imageUrl,
+                CommunityID = preId,
+                NBMembers = 0,
+                Description=description
+            
             };
 
             _context.sub_communities.Add(presub);
@@ -92,13 +105,22 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<SubCommunity>> GetSubCommunities(int preCommunityId)
+        public async Task<List<SubCommunityDto>> GetSubCommunities(int preCommunityId)
         {
             var sub_communities = await _context.sub_communities
-                                            .Where(sub => sub.CommunityID == preCommunityId)
-                                            .ToListAsync();
+                                                .Where(sub => sub.CommunityID == preCommunityId)
+                                                .Select(sub => new SubCommunityDto
+                                                {
+                                                    Id = sub.ID,
+                                                    Name = sub.Name,
+                                                    ImageUrl = sub.ImageUrl,
+                                                    Description = sub.Description,
+                                                    NBMembers = sub.NBMembers 
+                                                })
+                                                .ToListAsync();
 
             return sub_communities;
         }
+
     }
 }

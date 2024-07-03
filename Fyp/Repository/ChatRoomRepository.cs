@@ -75,8 +75,9 @@ public class ChatRoomRepository : IChatRoomRepository
 
         var chatRoomDtos = userChatRooms.Select(ucr => new ChatRoomDto2
         {
+            Id=ucr.Room.Id,
             RoomName = ucr.Room.RoomName,
-           
+            ProfilePath=ucr.Room.ProfilePath,
             NbMembers = ucr.Room.nbMembers,
         }).ToList();
 
