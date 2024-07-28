@@ -34,11 +34,11 @@ namespace Fyp.Controllers
         }
 
         [HttpPost("CreateSubCommunity")]
-        public async Task<IActionResult> CreatePreSubCommunity(int preId, string name)
+        public async Task<IActionResult> CreatePreSubCommunity([FromForm] SaveRequest request)
         {
             try
             {
-                await _repository.CreateSubCommunity(preId, name);
+                await _repository.CreateSubCommunity(request.preId, request.name, request.Description, request.Image);
                 return Ok("Subcommunity created successfully.");
             }
             catch (Exception ex)
@@ -75,7 +75,7 @@ namespace Fyp.Controllers
             }
         }
 
-        [HttpGet("{CommunityId}/subCommunities")]
+        [HttpGet("subCommunities")]
         public async Task<IActionResult> GetPreSubCommunities(int preCommunityId)
         {
             try
@@ -89,4 +89,13 @@ namespace Fyp.Controllers
             }
         }
     }
+}
+
+public class SaveRequest
+{
+    public IFormFile? Image { get; set; }
+    public string name{ get; set; }
+    public int preId { get; set; }
+    public string Description { get; set; }
+
 }

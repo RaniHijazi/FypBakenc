@@ -119,6 +119,13 @@ app.UseCors("AllowAnyOriginPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Log requests for debugging
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Request for {context.Request.Path} received");
+    await next.Invoke();
+});
+
 // Map controllers for HTTP APIs
 app.MapControllers();
 

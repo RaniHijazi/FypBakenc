@@ -118,7 +118,36 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpPost("createandadd")]
+        public async Task<ActionResult<ChatRoom>> CreateChatRoomWithUsers([FromForm] CreateChatRoomRequest request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.ChatRoomName) || request.UserIds == null || request.UserIds.Count == 0)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            try
+            {
+                var chatRoom = await _chatRoomRepository.CreateChatRoomWithUsers(request.ChatRoomName, request.CreatorUserId, request.UserIds, request.Image);
+                return Ok(chatRoom);
+            }
+            catch (Exception ex)
+            {
+               
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
 
 
     }
+}
+
+public class CreateChatRoomRequest
+{
+    public IFormFile? Image { get; set; }
+    public string ChatRoomName { get; set; }
+    public int CreatorUserId { get; set; }
+    public List<int> UserIds { get; set; }
 }

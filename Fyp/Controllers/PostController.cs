@@ -6,6 +6,7 @@ using Fyp.Dto;
 using Fyp.Models;
 using Fyp.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fyp.Controllers
@@ -15,10 +16,12 @@ namespace Fyp.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostRepository _repository;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public PostController(IPostRepository repository)
+        public PostController(IPostRepository repository, IHubContext<ChatHub> hubContext)
         {
             _repository = repository;
+            _hubContext = hubContext;
         }
 
         [HttpPost("create")]
@@ -38,11 +41,11 @@ namespace Fyp.Controllers
 
 
         [HttpPost("CreateSubPost")]
-        public async Task<IActionResult> CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, PostDto dto, IFormFile? image)
+        public async Task<IActionResult> CreatePreSubPosts([FromForm] SaveRequest2 request)
         {
             try
             {
-                await _repository.CreatePreSubPosts(user_id, precommunity_id, presubcommunity_id, dto, image);
+                await _repository.CreatePreSubPosts(request.UserId, request.CommunityId, request.presubcommunity_id, request.Description, request.Image);
                 return Ok("Subpost created successfully.");
             }
             catch (Exception ex)
@@ -263,6 +266,20 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpGet("subcommunity-posts")]
+        public async Task<ActionResult<List<GetPostDto>>> GetPostsOfAllSubcommunities([FromQuery] int preCommunityId)
+        {
+            try
+            {
+                var posts = await _repository.GetPostsOfAllSubcommunities(preCommunityId);
+                return Ok(posts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<List<GetPostDto>>> GetUserPosts(int userId)
         {
@@ -284,13 +301,45 @@ namespace Fyp.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
-    
-}
+
+        [HttpPost("sendTestNotification")]
+        public async Task<IActionResult> SendTestNotification([FromQuery] int userId, [FromQuery] string messageContent)
+        {
+            var connectedUsers = ChatHub.GetConnectedUsers();
+            Console.WriteLine($"Connected users: {string.Join(", ", connectedUsers)}");
+
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == userId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", messageContent);
+                }
+                return Ok($"Test notification sent to user {userId} with content: {messageContent}");
+            }
+            else
+            {
+                return NotFound($"User {userId} is not connected.");
+            }
+        }
+
+    }
 }
 public class SaveUrlRequest2
 {  
     public IFormFile? Image { get; set; }
     public int CommunityId { get; set; }
+    public int UserId { get; set; }
+    public string? Description { get; set; }
+
+}
+
+public class SaveRequest2
+{
+    public IFormFile? Image { get; set; }
+    public int CommunityId { get; set; }
+    public int presubcommunity_id { get; set; }
+    
     public int UserId { get; set; }
     public string? Description { get; set; }
 

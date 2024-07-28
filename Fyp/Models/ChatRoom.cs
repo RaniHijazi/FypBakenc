@@ -10,10 +10,10 @@ namespace Fyp.Models
         [Required]
         public string RoomName { get; set; }
         public int nbMembers { get; set; }
+        public DateTime DateOfCreate { get; set; }
 
 
-
-        public string Description { get; set; }
+        public string? ProfilePath { get; set; }
         [JsonIgnore]
         public ICollection<Message> Messages { get; set; }
         [JsonIgnore]

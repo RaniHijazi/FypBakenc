@@ -11,4 +11,5 @@ public interface IChatRoomRepository
     Task<List<ChatRoomDto2>> GetUserChatRooms(int userId);
     Task<ChatRoomDto> GetChatRoomById(int roomId);
     Task<List<Message>> GetRoomMessages(int roomId);
+    Task<ChatRoom> CreateChatRoomWithUsers(string chatRoomName, int creatorUserId, List<int> userIds, IFormFile? image);
 }
