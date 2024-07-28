@@ -20,7 +20,14 @@ namespace Fyp.Interfaces
         Task<List<GetUserStoriesDto>> GetStoriesAsync(int userId);
         Task<List<GetStoryDto>> GetUserStoriesByIdAsync(int userId);
         Task<List<FollowingUserDto>> GetFollowingUsersAsync(int userId);
+        Task<List<UserDto>> GetUsersAdmin();
+        Task DeleteOldStoriesAsync();
+        Task<string> ToggleUserStatus(int userId);
+        Task<bool> UpdateUserDetails(int userId, UserUpdateDto userDetails);
+        Task<List<string>> GetUserNamesInSubCommunityAsync(int subCommunityId);
+        Task<List<string>> GetUserNamesNotInSubCommunityAsync(int communityId);
+        Task<bool> DeleteUserByIdAndPassword(int userId, string password);
+        Task<bool> ChangePassword(int userId, string oldPassword, string newPassword);
 
-        Task DeleteOldStoriesAsync();  
     }
 }

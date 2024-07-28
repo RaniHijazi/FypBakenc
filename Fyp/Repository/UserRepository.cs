@@ -58,6 +58,7 @@ namespace Fyp.Repository
                 JoinDate = DateTime.Now,
                 Role = role,
                 CommunityId = CommunityId,
+                ProfilePath = "https://ranistoragefyp.blob.core.windows.net/blobfyp/depositphotos_134255634-stock-illustration-avatar-icon-male-profile-gray.jpg"
             };
 
             _context.users.Add(newUser);
@@ -116,7 +117,25 @@ namespace Fyp.Repository
             return await _context.users.FindAsync(userId);
         }
 
+        public async Task<List<string>> GetUserNamesInSubCommunityAsync(int subCommunityId)
+        {
+            return await (from u in _context.users
+                          join usc in _context.user_sub_communities on u.Id equals usc.UserId
+                          where usc.SubCommunityId == subCommunityId
+                          orderby u.FullName
+                          select u.FullName).ToListAsync();
+        }
 
+
+        public async Task<List<string>> GetUserNamesNotInSubCommunityAsync(int communityId)
+        {
+            return await (from u in _context.users
+                          join usc in _context.user_sub_communities on u.Id equals usc.UserId into userSubCommunities
+                          from subCommunity in userSubCommunities.DefaultIfEmpty()
+                          where subCommunity == null || subCommunity.SubCommunityId != communityId
+                          orderby u.FullName
+                          select u.FullName).ToListAsync();
+        }
 
 
 
@@ -130,8 +149,15 @@ namespace Fyp.Repository
             {
                 throw new InvalidOperationException("Invalid username or password");
             }
+
+            if (user.MemberStatus != "Active")
+            {
+                throw new InvalidOperationException("Error sign in, account deactivated");
+            }
+
             return user;
         }
+
 
         public async Task<List<User>> GetAllUsers()
         {
@@ -187,11 +213,11 @@ namespace Fyp.Repository
             {
                 throw new InvalidOperationException("User followed not found");
             }
-             
+
             userToFollow.TotalFollowers++;
 
             var followerUser = await _context.users.FindAsync(followerId);
-            
+
             followerUser.TotalFollowing++;
             await _context.SaveChangesAsync();
         }
@@ -224,13 +250,13 @@ namespace Fyp.Repository
 
             return new UserProfileDto
             {
-                Id=user.Id,
-                Bio=user.Bio,
-                FullName=user.FullName,
-                ProfilePath=user.ProfilePath,
-                Role=user.Role,
-                TotalFollowers=user.TotalFollowers,
-                TotalFollowing=user.TotalFollowing,
+                Id = user.Id,
+                Bio = user.Bio,
+                FullName = user.FullName,
+                ProfilePath = user.ProfilePath,
+                Role = user.Role,
+                TotalFollowers = user.TotalFollowers,
+                TotalFollowing = user.TotalFollowing,
                 JoinDate = user.JoinDate
 
             };
@@ -326,6 +352,106 @@ namespace Fyp.Repository
             }
         }
 
+        public async Task<List<UserDto>> GetUsersAdmin()
+        {
+            var users = await _context.users.Select(u => new UserDto
+            {
+                Id = u.Id,
+                Email = u.Email,
+                FullName = u.FullName,
+                Role = u.Role,
+                MemberStatus = u.MemberStatus,
 
+            })
+                .ToListAsync();
+            return users;
+        }
+
+        public async Task<string> ToggleUserStatus(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+            if (user == null)
+            {
+                return null;
+            }
+
+            user.MemberStatus = user.MemberStatus == "Active" ? "Inactive" : "Active";
+            await _context.SaveChangesAsync();
+            return user.MemberStatus;
+        }
+
+        public async Task<bool> UpdateUserDetails(int userId, UserUpdateDto userDetails)
+        {
+            var user = await _context.users.FindAsync(userId);
+            if (user == null)
+            {
+                return false;
+            }
+
+            user.FullName = userDetails.FullName ?? user.FullName;
+            user.Email = userDetails.Email ?? user.Email;
+            user.Role = userDetails.Role ?? user.Role;
+
+            _context.users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+
+        public async Task<bool> DeleteUserByIdAndPassword(int userId, string password)
+        {
+            var user = await _context.users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                return false;
+            }
+
+
+            var userSubCommunities = _context.user_sub_communities.Where(usc => usc.UserId == userId);
+            var userPosts = _context.posts.Where(p => p.UserId == userId);
+            var userComments = _context.comments.Where(c => c.UserId == userId);
+            var userLikes = _context.likes.Where(l => l.UserId == userId);
+            var userMessages = _context.messages.Where(m => m.SenderId == userId || m.RecipientId == userId);
+            var userChatRooms = _context.user_chat_rooms.Where(ucr => ucr.UserId == userId);
+            var userStories = _context.stories.Where(s => s.UserId == userId);
+            var userDocuments = _context.documents.Where(d => d.UserId == userId);
+            var userFollows = _context.Follows.Where(f => f.FollowerId == userId || f.FollowedId == userId);
+
+            _context.user_sub_communities.RemoveRange(userSubCommunities);
+            _context.posts.RemoveRange(userPosts);
+            _context.comments.RemoveRange(userComments);
+            _context.likes.RemoveRange(userLikes);
+            _context.messages.RemoveRange(userMessages);
+            _context.user_chat_rooms.RemoveRange(userChatRooms);
+            _context.stories.RemoveRange(userStories);
+            _context.documents.RemoveRange(userDocuments);
+            _context.Follows.RemoveRange(userFollows);
+
+            _context.users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+
+        public async Task<bool> ChangePassword(int userId, string oldPassword, string newPassword)
+        {
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
+            {
+                return false; 
+            }
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            user.Password = hashedPassword;
+
+            _context.users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

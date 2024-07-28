@@ -178,13 +178,14 @@ namespace Fyp.Controllers
             try
             {
                 await _blobStorageService.SaveUserUrlAsync(request.UserId, request.Image);
-                return Ok("User profile image URL saved successfully");
+                return Ok(new { message = "User profile image URL saved successfully" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Failed to save user profile image URL: {ex.Message}");
+                return StatusCode(500, new { message = $"Failed to save user profile image URL: {ex.Message}" });
             }
         }
+
 
         [HttpGet("{userId}/profile")]
         public async Task<ActionResult<UserProfileDto>> GetUserProfile(int userId)
@@ -285,6 +286,87 @@ namespace Fyp.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpGet("admin")]
+        public async Task<ActionResult<List<UserDto>>> GetUsersAdmin()
+        {
+            var users = await _userRepository.GetUsersAdmin();
+            return Ok(users);
+        }
+
+        [HttpPut("{id}/toggle-status")]
+        public async Task<IActionResult> ToggleUserStatus(int id)
+        {
+            var newStatus = await _userRepository.ToggleUserStatus(id);
+            if (newStatus == null)
+            {
+                return NotFound("User not found");
+            }
+            return Ok(newStatus);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto userDetails)
+        {
+            var result = await _userRepository.UpdateUserDetails(id, userDetails);
+            if (!result)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok("User updated successfully");
+        }
+
+        [HttpGet("GetUserNamesNotInSubCommunity/{communityId}")]
+        public async Task<ActionResult<List<string>>> GetUserNamesNotInSubCommunity(int communityId)
+        {
+            var userNames = await _userRepository.GetUserNamesNotInSubCommunityAsync(communityId);
+            return Ok(userNames);
+        }
+
+
+
+        [HttpGet("GetUserNamesInSubCommunity/{subCommunityId}")]
+        public async Task<ActionResult<List<string>>> GetUserNamesInSubCommunity(int subCommunityId)
+        {
+            var userNames = await _userRepository.GetUserNamesInSubCommunityAsync(subCommunityId);
+            return Ok(userNames);
+        }
+
+        [HttpDelete("{userId}")]
+        public async Task<IActionResult> DeleteUser(int userId, string Password)
+        {
+            var result = await _userRepository.DeleteUserByIdAndPassword(userId, Password);
+
+            if (!result)
+            {
+                return BadRequest("Invalid user ID or password.");
+            }
+
+            return Ok("User deleted successfully.");
+        }
+
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _userRepository.ChangePassword(changePasswordDto.UserId, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
+
+            if (!result)
+            {
+                return BadRequest("Invalid user ID or old password.");
+            }
+
+            return Ok("Password changed successfully.");
+        }
+
+
+
+
 
 
     }

@@ -160,10 +160,10 @@ namespace Fyp.Repository
             return posts;
         }
 
-        public async Task<List<GetPostDto>> GetPreSubPosts(int PreCommunityId, int subCommunityId)
+        public async Task<List<GetPostDto>> GetPreSubPosts( int subCommunityId)
         {
             var posts = await _context.posts
-                .Where(p => p.CommunityId == PreCommunityId && p.SubCommunityId == subCommunityId)
+                .Where(p =>p.SubCommunityId == subCommunityId)
                 .Select(p => new GetPostDto
                 {
                     Id = p.Id,

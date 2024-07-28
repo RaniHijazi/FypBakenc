@@ -27,7 +27,6 @@ public class DataContext : DbContext
     public DbSet<DocumentApproval> documents_approval { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
         modelBuilder.Entity<UserChatRoom>()
             .HasKey(ucr => ucr.Id);
 
@@ -41,26 +40,26 @@ public class DataContext : DbContext
             .WithMany(r => r.UserChatRooms)
             .HasForeignKey(ucr => ucr.RoomId);
 
-
         modelBuilder.Entity<UserSubCommunity>()
             .HasKey(usc => usc.Id);
 
         modelBuilder.Entity<UserSubCommunity>()
-            .HasOne(ucr => ucr.User)
+            .HasOne(usc => usc.User)
             .WithMany(u => u.UserSubCommunities)
-            .HasForeignKey(ucr => ucr.UserId);
+            .HasForeignKey(usc => usc.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UserSubCommunity>()
-            .HasOne(ucr => ucr.SubCommunity)
-            .WithMany(r => r.UserSubCommunities)
-            .HasForeignKey(ucr => ucr.SubCommunityId);
+            .HasOne(usc => usc.SubCommunity)
+            .WithMany(sc => sc.UserSubCommunities)
+            .HasForeignKey(usc => usc.SubCommunityId)
+            .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to avoid multiple cascade paths
 
         modelBuilder.Entity<Message>()
             .HasOne(m => m.Sender)
             .WithMany()
             .HasForeignKey(m => m.SenderId)
-               .OnDelete(DeleteBehavior.Restrict);
-
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Message>()
             .HasOne(m => m.Recipient)
@@ -72,19 +71,13 @@ public class DataContext : DbContext
             .HasOne(p => p.Community)
             .WithMany(pc => pc.Posts)
             .HasForeignKey(p => p.CommunityId)
-             .OnDelete(DeleteBehavior.Restrict);
-
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Post>()
             .HasOne(p => p.SubCommunity)
             .WithMany(psc => psc.Posts)
             .HasForeignKey(p => p.SubCommunityId)
-            .OnDelete(DeleteBehavior.Restrict);
-        modelBuilder.Entity<UserSubCommunity>()
-            .HasOne(usc => usc.User)
-            .WithMany(u => u.UserSubCommunities)
-            .HasForeignKey(usc => usc.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to avoid multiple cascade paths
 
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.User)
@@ -93,7 +86,7 @@ public class DataContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Follow>()
-                .HasKey(f => f.Id);
+            .HasKey(f => f.Id);
 
         modelBuilder.Entity<Follow>()
             .HasOne(f => f.Follower)
@@ -108,15 +101,28 @@ public class DataContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Document>()
-           .HasOne(d => d.DocumentApproval)
-           .WithOne(da => da.Document)
-           .HasForeignKey<DocumentApproval>(da => da.DocumentId)
-           .OnDelete(DeleteBehavior.Cascade);
+            .HasOne(d => d.DocumentApproval)
+            .WithOne(da => da.Document)
+            .HasForeignKey<DocumentApproval>(da => da.DocumentId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<DocumentApproval>()
             .HasOne(da => da.AdminUser)
             .WithMany(u => u.DocumentApprovals)
             .HasForeignKey(da => da.ApprovedById)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SubCommunity>()
+            .HasMany(sc => sc.UserSubCommunities)
+            .WithOne(usc => usc.SubCommunity)
+            .HasForeignKey(usc => usc.SubCommunityId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<SubCommunity>()
+            .HasMany(sc => sc.Posts)
+            .WithOne(p => p.SubCommunity)
+            .HasForeignKey(p => p.SubCommunityId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
+
 }

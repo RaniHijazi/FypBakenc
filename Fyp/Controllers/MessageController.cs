@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.SignalR;
 using Fyp.Interfaces;
 using Fyp.Models;
 using Microsoft.EntityFrameworkCore;
+using Fyp.Dto;
 
 namespace Fyp.Controllers
 {
@@ -167,10 +168,22 @@ namespace Fyp.Controllers
             var messages = await _context.messages
                 .Where(m => m.SenderId == userId || m.RecipientId == userId)
                 .OrderBy(m => m.Timestamp)
+                .Select(m => new MessageDto2
+                {
+                    MessageId = m.MessageId,
+                    SenderId = m.SenderId,
+                    RecipientId = m.RecipientId,
+                    RoomId = m.RoomId,
+                    Content = m.Content,
+                    Timestamp = m.Timestamp,
+                    RoomName = m.Room != null ? m.Room.RoomName : null,
+                    ProfilePath = m.Room != null ? m.Room.ProfilePath : null 
+                })
                 .ToListAsync();
 
             return Ok(messages);
         }
+
 
 
         [HttpPost("replyToStory")]

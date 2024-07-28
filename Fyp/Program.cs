@@ -89,12 +89,13 @@ services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Configure CORS policy
 services.AddCors(options =>
 {
-    options.AddPolicy("AllowAnyOriginPolicy",
+    options.AddPolicy("AllowSpecificOriginsPolicy",
         builder =>
         {
-            builder.AllowAnyOrigin()
+            builder.WithOrigins("http://192.168.0.106:7210", "http://localhost:3002") 
                    .AllowAnyHeader()
-                   .AllowAnyMethod();
+                   .AllowAnyMethod()
+                   .AllowCredentials();
         });
 });
 
@@ -113,7 +114,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Enable CORS policy before authentication and authorization
-app.UseCors("AllowAnyOriginPolicy");
+app.UseCors("AllowSpecificOriginsPolicy");
 
 // Authentication and authorization
 app.UseAuthentication();

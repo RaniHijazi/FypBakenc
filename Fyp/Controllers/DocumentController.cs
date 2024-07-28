@@ -20,11 +20,11 @@ namespace Fyp.Controllers
         }
 
         [HttpPost("upload")]
-        public async Task<IActionResult> UploadDocument([FromForm] IFormFile image, [FromForm] int documentId)
+        public async Task<IActionResult> UploadDocument([FromForm] SaveDocumentRequest request)
         {
             try
             {
-                await _documentRepository.UploadDocument(image, documentId);
+                await _documentRepository.UploadDocument(request.DocumentId,request.Image);
                 return Ok("Document uploaded successfully");
             }
             catch (Exception ex)
@@ -61,12 +61,26 @@ namespace Fyp.Controllers
             }
         }
 
-        [HttpPost("refuse")]
-        public async Task<IActionResult> RefuseDocument([FromForm] int documentId, [FromForm] int adminUserId)
+        [HttpGet("UserDocuments")]
+        public async Task<IActionResult> DisplayUserDocuments([FromQuery] int userId)
         {
             try
             {
-                await _documentRepository.RefuseDocument(documentId, adminUserId);
+                var documents = await _documentRepository.DisplayUserDocuments(userId);
+                return Ok(documents);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error retrieving documents for admin: {ex.Message}");
+            }
+        }
+
+        [HttpPost("refuse")]
+        public async Task<IActionResult> RefuseDocument([FromForm] int documentId, [FromForm] int adminUserId, [FromForm] string note)
+        {
+            try
+            {
+                await _documentRepository.RefuseDocument(documentId, adminUserId,note);
                 return Ok("Document refused successfully");
             }
             catch (Exception ex)
@@ -75,4 +89,12 @@ namespace Fyp.Controllers
             }
         }
     }
+}
+
+public class SaveDocumentRequest
+{
+    public IFormFile? Image { get; set; }
+    public int DocumentId { get; set; }
+   
+
 }

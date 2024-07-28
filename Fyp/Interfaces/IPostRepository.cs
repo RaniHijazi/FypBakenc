@@ -9,7 +9,7 @@ namespace Fyp.Repository
         Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id,string? Description, IFormFile? image);
         Task DeletePost(int post_id);
         Task<List<GetPostDto>> GetPrePosts(int PreCommunityId);
-        Task<List<GetPostDto>> GetPreSubPosts(int PreCommunityId, int subCommunityId);
+        Task<List<GetPostDto>> GetPreSubPosts( int subCommunityId);
         Task LikePost(int post_id, int user_id);
         Task DislikePost(int post_id, int user_id);
         Task LikeComment(int comment_id, int user_id);
