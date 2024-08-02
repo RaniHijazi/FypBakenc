@@ -304,3 +304,14 @@ C:\Users\Dell\Desktop\FypBakenc\Fyp\obj\Debug\net6.0\refint\Fyp.dll
 C:\Users\Dell\Desktop\FypBakenc\Fyp\obj\Debug\net6.0\Fyp.pdb
 C:\Users\Dell\Desktop\FypBakenc\Fyp\obj\Debug\net6.0\Fyp.genruntimeconfig.cache
 C:\Users\Dell\Desktop\FypBakenc\Fyp\obj\Debug\net6.0\ref\Fyp.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\FirebaseAdmin.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Google.Api.Gax.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Google.Api.Gax.Rest.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Google.Apis.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Google.Apis.Auth.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Google.Apis.Core.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\System.CodeDom.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\System.Collections.Immutable.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\System.Management.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\runtimes\win\lib\net6.0\System.Management.dll
+C:\Users\Dell\Desktop\FypBakenc\Fyp\bin\Debug\net6.0\Firebase\testing-3a202-firebase-adminsdk-yu3bd-0901c73dd7.json

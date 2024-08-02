@@ -33,6 +33,8 @@ namespace Fyp.Interfaces
         Task<int> GetDailyLikesCountAsync(int userId);
         Task<int> GetDailyCommentsCountAsync(int userId);
         Task<int> GetUserLevelAsync(int userId);
+        Task UpdateFcmTokenAsync(int userId, string fcmToken);
+
 
     }
 }

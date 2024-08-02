@@ -1,7 +1,9 @@
 ﻿using Fyp.Dto;
 using Fyp.Interfaces;
 using Fyp.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
@@ -12,11 +14,15 @@ namespace Fyp.Repository
 
         private readonly DataContext _context;
         private readonly BlobStorageService _blobStorageService;
+        private readonly IFcmService _fcmService;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public UserRepository(DataContext context, BlobStorageService blobStorageService)
+        public UserRepository(DataContext context, BlobStorageService blobStorageService, IFcmService fcmService, IHubContext<ChatHub> hubContext)
         {
             _context = context;
             _blobStorageService = blobStorageService;
+            _fcmService = fcmService;
+            _hubContext = hubContext;
         }
 
         public async Task<bool> VerifyVerificationCode(string userEmail, string verificationCode)
@@ -217,9 +223,50 @@ namespace Fyp.Repository
             userToFollow.TotalFollowers++;
 
             var followerUser = await _context.users.FindAsync(followerId);
+            var followedUser = await _context.users.FindAsync(followedId);
 
             followerUser.TotalFollowing++;
             await _context.SaveChangesAsync();
+
+
+            Console.WriteLine($"{followerUser.FullName} followed you.");
+
+
+
+            var notification = new Models.Notification
+            {
+                UserId = followedUser.Id,
+                Content = $"{followerUser.FullName} folowed you",
+                Time = DateTime.Now,
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+
+
+
+
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == followedUser.Id.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"You have been followed by {followerUser.FullName}");
+                }
+                Console.WriteLine($"Notification sent to user {followedUser.Id}.");
+            }
+            else
+            {
+                Console.WriteLine($"User {followedUser.Id} is not connected.");
+            }
+
+
+            if (!string.IsNullOrEmpty(followedUser.FcmToken))
+            {
+                await _fcmService.SendNotificationAsync(followedUser.FcmToken, "Follow", $"You have been followed by {followerUser.FullName}");
+            }
         }
 
         public async Task UnfollowUserAsync(int followerId, int followedId)
@@ -375,10 +422,58 @@ namespace Fyp.Repository
                 return null;
             }
 
+            // Toggle the status
             user.MemberStatus = user.MemberStatus == "Active" ? "Inactive" : "Active";
             await _context.SaveChangesAsync();
+
+            // Determine the notification message based on the new status
+            string notificationContent;
+            string notificationMessage;
+            if (user.MemberStatus == "Active")
+            {
+                notificationContent = $"{user.FullName}, your account has been activated.";
+                notificationMessage = "Your account has been activated. Welcome back!";
+            }
+            else
+            {
+                notificationContent = $"{user.FullName}, your account has been deactivated.";
+                notificationMessage = "Your account has been deactivated. Review the Admission for any info review Administration.";
+            }
+
+            Console.WriteLine(notificationMessage);
+
+            var notification = new Models.Notification
+            {
+                UserId = userId,
+                Content = notificationContent,
+                Time = DateTime.Now,
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == userId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", notificationMessage);
+                }
+            }
+            else
+            {
+                Console.WriteLine("User is not connected.");
+            }
+
+            if (!string.IsNullOrEmpty(user.FcmToken))
+            {
+                await _fcmService.SendNotificationAsync(user.FcmToken, user.MemberStatus == "Active" ? "Account Activated" : "Account Deactivated", notificationMessage);
+            }
+
             return user.MemberStatus;
         }
+
 
         public async Task<bool> UpdateUserDetails(int userId, UserUpdateDto userDetails)
         {
@@ -538,7 +633,7 @@ namespace Fyp.Repository
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(oldPassword, user.Password))
             {
-                return false; 
+                return false;
             }
 
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
@@ -548,6 +643,19 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task UpdateFcmTokenAsync(int userId, string fcmToken)
+        {
+            var user = await _context.users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            user.FcmToken = fcmToken;
+            _context.users.Update(user);
+            await _context.SaveChangesAsync();
         }
     }
 }

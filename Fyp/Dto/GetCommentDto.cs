@@ -9,5 +9,6 @@
         public string? UserProfilePath { get; set; }
         public int LikesCount { get; set; }
         public string time { get; set; }
+        public int Level { get; set; }
     }
 }

@@ -1,5 +1,4 @@
-﻿
-using Fyp.Models;
+﻿using Fyp.Models;
 using Microsoft.EntityFrameworkCore;
 
 public class DataContext : DbContext
@@ -7,6 +6,7 @@ public class DataContext : DbContext
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
     }
+
     public DbSet<User> users { get; set; }
     public DbSet<Community> communities { get; set; }
     public DbSet<SubCommunity> sub_communities { get; set; }
@@ -23,8 +23,9 @@ public class DataContext : DbContext
     public DbSet<Major> majors { get; set; }
     public DbSet<Corse> corses { get; set; }
     public DbSet<Story> stories { get; set; }
-
     public DbSet<DocumentApproval> documents_approval { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserChatRoom>()
@@ -33,12 +34,14 @@ public class DataContext : DbContext
         modelBuilder.Entity<UserChatRoom>()
             .HasOne(ucr => ucr.User)
             .WithMany(u => u.UserChatRooms)
-            .HasForeignKey(ucr => ucr.UserId);
+            .HasForeignKey(ucr => ucr.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UserChatRoom>()
             .HasOne(ucr => ucr.Room)
             .WithMany(r => r.UserChatRooms)
-            .HasForeignKey(ucr => ucr.RoomId);
+            .HasForeignKey(ucr => ucr.RoomId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<UserSubCommunity>()
             .HasKey(usc => usc.Id);
@@ -53,7 +56,7 @@ public class DataContext : DbContext
             .HasOne(usc => usc.SubCommunity)
             .WithMany(sc => sc.UserSubCommunities)
             .HasForeignKey(usc => usc.SubCommunityId)
-            .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to avoid multiple cascade paths
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Message>()
             .HasOne(m => m.Sender)
@@ -77,7 +80,13 @@ public class DataContext : DbContext
             .HasOne(p => p.SubCommunity)
             .WithMany(psc => psc.Posts)
             .HasForeignKey(p => p.SubCommunityId)
-            .OnDelete(DeleteBehavior.Restrict); // Change to Restrict to avoid multiple cascade paths
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Post>()
+            .HasOne(p => p.User)
+            .WithMany(u => u.Posts)
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Comment>()
             .HasOne(c => c.User)
@@ -124,5 +133,4 @@ public class DataContext : DbContext
             .HasForeignKey(p => p.SubCommunityId)
             .OnDelete(DeleteBehavior.Cascade);
     }
-
 }

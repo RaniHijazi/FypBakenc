@@ -24,10 +24,12 @@ namespace Fyp.Models
         public int CommunityId { get; set; }
         public string? MemberStatus { get; set; }
         public int points { get; set; } = 0;
-        public int Level { get; set; }= 0;
+        public int Level { get; set; } = 0;
         public DateTime? LastLikePointsAwarded { get; set; }
         public DateTime? LastCmntPointsAwarded { get; set; }
         public DateTime? LastPostPointsAwarded { get; set; }
+
+        public string? FcmToken { get; set; }
 
 
 
@@ -53,7 +55,7 @@ namespace Fyp.Models
         [JsonIgnore]
         public ICollection<Follow> Followings { get; set; }
 
-        
+
 
         [JsonIgnore]
         public ICollection<DocumentApproval> DocumentApprovals { get; set; }

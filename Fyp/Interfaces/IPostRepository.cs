@@ -1,5 +1,6 @@
 ﻿
 using Fyp.Dto;
+using Fyp.Models;
 
 namespace Fyp.Repository
 {
@@ -24,5 +25,6 @@ namespace Fyp.Repository
         Task<bool> HasUserLikedComment(int commentId, int userId);
         Task<List<GetPostDto>> GetUserPosts(int userId);
         Task<List<GetPostDto>> GetPostsOfAllSubcommunities(int preCommunityId);
+        Task<List<Notification>> GetAllNotificationsForUser(int userId);
     }
 }

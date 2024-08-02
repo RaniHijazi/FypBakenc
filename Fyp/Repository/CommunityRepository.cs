@@ -1,5 +1,7 @@
 ﻿using Fyp.Dto;
+using Fyp.Interfaces;
 using Fyp.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Fyp.Repository
@@ -8,11 +10,16 @@ namespace Fyp.Repository
     {
         private readonly DataContext _context;
         private readonly BlobStorageService _blobStorageService;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IFcmService _fcmService;
 
-        public CommunityRepository(DataContext context, BlobStorageService blobStorageService)
+        public CommunityRepository(DataContext context, BlobStorageService blobStorageService, IHubContext<ChatHub> hubContext, IFcmService fcmService)
         {
             _context = context;
             _blobStorageService = blobStorageService;
+            _hubContext = hubContext;
+            _fcmService = fcmService;
+
         }
 
         public async Task CreateCommunity(CommunityDto dto)
@@ -64,6 +71,8 @@ namespace Fyp.Repository
                 Status="Inactive",
             
             };
+
+
 
             _context.sub_communities.Add(presub);
             await _context.SaveChangesAsync();
@@ -285,6 +294,8 @@ namespace Fyp.Repository
 
             community.Status = community.Status == "Active" ? "Inactive" : "Active";
             await _context.SaveChangesAsync();
+
+            
             return community.Status;
         }
 

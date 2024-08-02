@@ -246,7 +246,7 @@ namespace Fyp.Controllers
         {
             try
             {
-                var stories = await _userRepository.GetStoriesAsync(userId);  
+                var stories = await _userRepository.GetStoriesAsync(userId);
                 return Ok(stories);
             }
             catch (Exception ex)
@@ -427,15 +427,39 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpPost("updateFcmToken")]
+        public async Task<IActionResult> UpdateFcmToken([FromBody] UpdateFcmTokenRequest request)
+        {
+            try
+            {
+                var user = await _context.users.FindAsync(request.UserId);
+                if (user == null)
+                {
+                    return NotFound("User not found");
+                }
+
+                user.FcmToken = request.FcmToken;
+                _context.users.Update(user);
+                await _context.SaveChangesAsync();
+
+                return Ok("FCM Token updated successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+    
 
 
 
-    }
+
+}
     public class SaveUrlRequest
     {
         public int UserId { get; set; }
         public IFormFile Image { get; set; }
-       
+
     }
     public class SaveUrlStoryRequest
     {
@@ -448,5 +472,11 @@ namespace Fyp.Controllers
     {
         public int FollowerId { get; set; }
         public int FollowedId { get; set; }
+    }
+
+    public class UpdateFcmTokenRequest
+    {
+        public int UserId { get; set; }
+        public string FcmToken { get; set; }
     }
 }

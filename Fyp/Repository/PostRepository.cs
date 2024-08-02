@@ -1,8 +1,15 @@
 ﻿using Fyp.Dto;
+using Fyp.Interfaces;
 using Fyp.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using FirebaseAdmin.Messaging;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using System.ComponentModel.Design;
 
 namespace Fyp.Repository
 {
@@ -11,12 +18,13 @@ namespace Fyp.Repository
         private readonly DataContext _context;
         private readonly BlobStorageService _blobStorageService;
         private readonly IHubContext<ChatHub> _hubContext;
-
-        public PostRepository(DataContext context, BlobStorageService blobStorageService, IHubContext<ChatHub> hubContext)
+        private readonly IFcmService _fcmService;
+        public PostRepository(DataContext context, BlobStorageService blobStorageService, IHubContext<ChatHub> hubContext, IFcmService fcmService)
         {
             _context = context;
             _blobStorageService = blobStorageService;
             _hubContext = hubContext;
+            _fcmService = fcmService;
         }
 
         public async Task CreatePrePost(int user_id, int precommunity_id, string? Description, IFormFile? image)
@@ -54,6 +62,7 @@ namespace Fyp.Repository
             };
 
             _context.posts.Add(prepost);
+            await _context.SaveChangesAsync();
 
             if (user.LastPostPointsAwarded != DateTime.Today)
             {
@@ -126,6 +135,7 @@ namespace Fyp.Repository
             };
 
             _context.posts.Add(prepost);
+            await _context.SaveChangesAsync();
             if (user.LastPostPointsAwarded != DateTime.Today)
             {
                 var today = DateTime.Today;
@@ -200,7 +210,8 @@ namespace Fyp.Repository
                     Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
                     UserFullName = p.User.FullName,
                     UserProfileImageUrl = p.User.ProfilePath,
-                    UserId=p.UserId
+                    UserId=p.UserId,
+                    Level=p.User.Level,
 
                 })
                 .ToListAsync();
@@ -260,7 +271,7 @@ namespace Fyp.Repository
             };
 
             _context.likes.Add(like);
-
+            await _context.SaveChangesAsync();
 
             if (user.LastLikePointsAwarded != DateTime.Today)
             {
@@ -283,7 +294,23 @@ namespace Fyp.Repository
 
             await _context.SaveChangesAsync();
 
-            Console.WriteLine($"Post liked by user {user_id}. Sending notification to user {post.UserId}.");
+            Console.WriteLine($"Post liked by user {user.FullName}. Sending notification to user {post.UserId}.");
+
+
+
+            var notification = new Models.Notification
+            {
+                UserId = post.UserId,
+                Content = $"{user.FullName} liked your post",
+                Time = DateTime.Now,
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+
+
+
 
             var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == post.UserId.ToString()).Select(kvp => kvp.Key).ToList();
             if (connectionIds.Count > 0)
@@ -291,7 +318,7 @@ namespace Fyp.Repository
                 foreach (var connectionId in connectionIds)
                 {
                     Console.WriteLine($"Sending notification to connection ID {connectionId}");
-                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"Your post has been liked by user {user_id}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"Your post has been liked by {user.FullName}");
                 }
                 Console.WriteLine($"Notification sent to user {post.UserId}.");
             }
@@ -299,7 +326,14 @@ namespace Fyp.Repository
             {
                 Console.WriteLine($"User {post.UserId} is not connected.");
             }
+            
+
+            if (!string.IsNullOrEmpty(post.User.FcmToken))
+            {
+                await _fcmService.SendNotificationAsync(post.User.FcmToken, "Post Liked", $"Your post has been liked by {user.FullName}");
+            }
         }
+
 
         public async Task DislikePost(int post_id, int user_id)
         {
@@ -321,31 +355,75 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task LikeComment(int comment_id,int user_id)
+        public async Task LikeComment(int comment_id, int user_id)
         {
-            var existingLike = await _context.likes.FirstOrDefaultAsync(l => l.CommentId== comment_id && l.UserId == user_id);
+            var existingLike = await _context.likes.FirstOrDefaultAsync(l => l.CommentId == comment_id && l.UserId == user_id);
             if (existingLike != null)
             {
                 throw new InvalidOperationException("User has already liked this comment");
             }
-            var comment = await _context.comments.FindAsync(comment_id);
+
+            var comment = await _context.comments
+                .Include(c => c.User)
+                .Include(c => c.Post)
+                .ThenInclude(p => p.User)  // Ensure the post's user is loaded
+                .FirstOrDefaultAsync(c => c.Id == comment_id);
+
             if (comment == null)
             {
                 throw new InvalidOperationException("Comment not found");
             }
+
             comment.LikesCount += 1;
 
             var like = new Like
             {
-                CommentId=comment_id,
+                CommentId = comment_id,
                 UserId = user_id,
-
             };
 
             _context.likes.Add(like);
             await _context.SaveChangesAsync();
 
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Id == user_id);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            Console.WriteLine($"Comment liked by user {user.FullName}. Sending notification to user {comment.Post.UserId}.");
+
+            var notification = new Models.Notification
+            {
+                UserId = comment.Post.UserId,
+                Content = $"{user.FullName} liked your comment",
+                Time = DateTime.Now,
+            };
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == comment.UserId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"Your comment has been liked by {user.FullName}");
+                }
+                Console.WriteLine($"Notification sent to user {comment.UserId}.");
+            }
+            else
+            {
+                Console.WriteLine($"User {comment.UserId} is not connected.");
+            }
+
+            if (!string.IsNullOrEmpty(comment.User.FcmToken))
+            {
+                await _fcmService.SendNotificationAsync(comment.User.FcmToken, "Comment Liked", $"Your comment has been liked by {user.FullName}");
+            }
         }
+
 
         public async Task DislikeComment(int comment_id, int user_id)
         {
@@ -369,7 +447,7 @@ namespace Fyp.Repository
 
         public async Task CommentOnPost(int post_id, int user_id, CommentDto dto)
         {
-            var post = await _context.posts.FindAsync(post_id);
+            var post = await _context.posts.Include(p => p.User).FirstOrDefaultAsync(p => p.Id == post_id);
             if (post == null)
             {
                 throw new InvalidOperationException("Post not found");
@@ -387,8 +465,38 @@ namespace Fyp.Repository
             };
 
             _context.comments.Add(comment);
-
+            await _context.SaveChangesAsync();
             var user = await _context.users.FirstOrDefaultAsync(u => u.Id == user_id);
+            var notification = new Models.Notification
+            {
+                UserId = post.UserId,
+                Content = $"{user.FullName} Commented on your post",
+                Time = DateTime.Now,
+            };
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == post.UserId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", $"Your post has been liked by {user.FullName}");
+                }
+                Console.WriteLine($"Notification sent to user {post.UserId}.");
+            }
+            else
+            {
+                Console.WriteLine($"User {post.UserId} is not connected.");
+            }
+
+            if (!string.IsNullOrEmpty(post.User.FcmToken))
+            {
+                await _fcmService.SendNotificationAsync(post.User.FcmToken, "Post Commented", $"Your post has been commented by {user.FullName}");
+            }
+
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+           
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");
@@ -542,6 +650,19 @@ namespace Fyp.Repository
                 .ToListAsync();
 
             return posts;
+        }
+
+
+        public async Task<List<Models.Notification>> GetAllNotificationsForUser(int userId)
+        {
+            var notifications = await _context.Notifications
+                .Where(n => n.UserId == userId)
+                .OrderByDescending(n => n.Time)
+                .ToListAsync();
+
+          
+
+            return notifications;
         }
 
         public async Task<List<GetPostDto>> GetUserPosts(int userId)

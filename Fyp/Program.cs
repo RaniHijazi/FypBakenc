@@ -1,7 +1,5 @@
-using Fyp.Interfaces;
-using Fyp.Repository;
-using Hangfire;
-using Hangfire.SqlServer;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +10,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
+using Fyp.Interfaces;
+using Fyp.Repository;
+using Hangfire;
+using Hangfire.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +37,9 @@ services.AddScoped<IMessageRepository, MessageRepository>();
 services.AddScoped<IUniversityRepository, UniversityRepository>();
 services.AddScoped<IDocumentRepository, DocumentRepository>();
 services.AddScoped<BlobStorageService>();
+
+// Add FCM service
+services.AddScoped<IFcmService, FcmService>();
 
 // Add Hangfire services
 services.AddHangfire(configuration => configuration
@@ -92,11 +97,17 @@ services.AddCors(options =>
     options.AddPolicy("AllowSpecificOriginsPolicy",
         builder =>
         {
-            builder.WithOrigins("http://192.168.0.106:7210", "http://localhost:3002") 
+            builder.WithOrigins("http://192.168.0.106:7210", "http://localhost:3002")
                    .AllowAnyHeader()
                    .AllowAnyMethod()
                    .AllowCredentials();
         });
+});
+
+// Initialize Firebase Admin SDK
+FirebaseApp.Create(new AppOptions()
+{
+    Credential = GoogleCredential.FromFile("Firebase/testing-3a202-firebase-adminsdk-yu3bd-0901c73dd7.json"),
 });
 
 var app = builder.Build();

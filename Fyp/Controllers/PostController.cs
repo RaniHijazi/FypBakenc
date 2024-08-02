@@ -302,6 +302,20 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpGet("{userId}")]
+        public async Task<ActionResult<List<Notification>>> GetNotifications(int userId)
+        {
+            try
+            {
+                var notifications = await _repository.GetAllNotificationsForUser(userId);
+                return Ok(notifications);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
         [HttpPost("sendTestNotification")]
         public async Task<IActionResult> SendTestNotification([FromQuery] int userId, [FromQuery] string messageContent)
         {

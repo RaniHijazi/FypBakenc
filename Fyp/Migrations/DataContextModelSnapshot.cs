@@ -357,6 +357,31 @@ namespace Fyp.Migrations
                     b.ToTable("messages");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Notification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("Fyp.Models.Post", b =>
                 {
                     b.Property<int>("Id")
@@ -484,6 +509,9 @@ namespace Fyp.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FcmToken")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
@@ -741,6 +769,17 @@ namespace Fyp.Migrations
                     b.Navigation("Story");
                 });
 
+            modelBuilder.Entity("Fyp.Models.Notification", b =>
+                {
+                    b.HasOne("Fyp.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Fyp.Models.Post", b =>
                 {
                     b.HasOne("Fyp.Models.Community", "Community")
@@ -756,7 +795,7 @@ namespace Fyp.Migrations
                     b.HasOne("Fyp.Models.User", "User")
                         .WithMany("Posts")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Community");
@@ -804,13 +843,13 @@ namespace Fyp.Migrations
                     b.HasOne("Fyp.Models.ChatRoom", "Room")
                         .WithMany("UserChatRooms")
                         .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Fyp.Models.User", "User")
                         .WithMany("UserChatRooms")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Room");
