@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Fyp.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240729144310_PointsMigration5")]
+    partial class PointsMigration5
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -377,6 +379,9 @@ namespace Fyp.Migrations
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("LastPostPointsAwarded")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("LikesCount")
                         .HasColumnType("int");
 
@@ -501,9 +506,6 @@ namespace Fyp.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("LastLikePointsAwarded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastPostPointsAwarded")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Level")

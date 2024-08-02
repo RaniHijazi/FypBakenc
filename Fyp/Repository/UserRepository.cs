@@ -435,6 +435,102 @@ namespace Fyp.Repository
             return true;
         }
 
+        public async Task<int> GetUserPointsAsync(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+            return user != null ? user.points : 0;
+        }
+
+        public async Task<int> GetDailyLikesCountAsync(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (user.LastLikePointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var likesCount = await _context.likes
+                    .CountAsync(l => l.UserId == userId && l.CreatedAt >= today);
+
+                return likesCount;
+            }
+            else
+            {
+                return 5;
+            }
+        }
+
+        public async Task<int> GetDailyPostCountAsync(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (user.LastPostPointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var userPosts = await _context.posts
+                    .Where(l => l.UserId == userId)
+                    .ToListAsync();
+
+                var postsCount = userPosts
+                    .Count(l => DateTime.TryParse(l.Timestamp, out DateTime parsedDate) && parsedDate >= today);
+
+                return postsCount;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        public async Task<int> GetDailyCommentsCountAsync(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (user.LastCmntPointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var userComments = await _context.comments
+                    .Where(l => l.UserId == userId)
+                    .ToListAsync();
+
+                var commentsCount = userComments
+                    .Count(l => DateTime.TryParse(l.time, out DateTime parsedDate) && parsedDate >= today);
+
+                return commentsCount;
+            }
+            else
+            {
+                return 5;
+            }
+        }
+
+
+        public async Task<int> GetUserLevelAsync(int userId)
+        {
+            var user = await _context.users.FindAsync(userId);
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            return user.Level;
+        }
+
+
 
         public async Task<bool> ChangePassword(int userId, string oldPassword, string newPassword)
         {

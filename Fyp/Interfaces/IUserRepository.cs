@@ -28,6 +28,11 @@ namespace Fyp.Interfaces
         Task<List<string>> GetUserNamesNotInSubCommunityAsync(int communityId);
         Task<bool> DeleteUserByIdAndPassword(int userId, string password);
         Task<bool> ChangePassword(int userId, string oldPassword, string newPassword);
+        Task<int> GetDailyPostCountAsync(int userId);
+        Task<int> GetUserPointsAsync(int userId);
+        Task<int> GetDailyLikesCountAsync(int userId);
+        Task<int> GetDailyCommentsCountAsync(int userId);
+        Task<int> GetUserLevelAsync(int userId);
 
     }
 }

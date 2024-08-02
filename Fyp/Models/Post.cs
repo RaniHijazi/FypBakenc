@@ -11,6 +11,7 @@ namespace Fyp.Models
         public int CommentsCount { get; set; } = 0;
         public int ShareCount { get; set; } = 0;
         public string Timestamp { get; set; }
+      
 
         public int UserId { get; set; }
         [JsonIgnore]

@@ -346,6 +346,13 @@ namespace Fyp.Controllers
             return Ok("User deleted successfully.");
         }
 
+        [HttpGet("{userId}/points")]
+        public async Task<IActionResult> GetUserPoints(int userId)
+        {
+            var points = await _userRepository.GetUserPointsAsync(userId);
+            return Ok(points);
+        }
+
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
@@ -364,7 +371,61 @@ namespace Fyp.Controllers
             return Ok("Password changed successfully.");
         }
 
+        [HttpGet("{userId}/daily-likes")]
+        public async Task<IActionResult> GetDailyLikes(int userId)
+        {
+            try
+            {
+                var likesCount = await _userRepository.GetDailyLikesCountAsync(userId);
+                return Ok(likesCount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
 
+        [HttpGet("{userId}/daily-posts")]
+        public async Task<IActionResult> GetDailyPosts(int userId)
+        {
+            try
+            {
+                var postsCount = await _userRepository.GetDailyPostCountAsync(userId);
+                return Ok(postsCount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [HttpGet("{userId}/daily-comments")]
+        public async Task<IActionResult> GetDailyComments(int userId)
+        {
+            try
+            {
+                var commentsCount = await _userRepository.GetDailyCommentsCountAsync(userId);
+                return Ok(commentsCount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+
+        [HttpGet("{userId}/level")]
+        public async Task<ActionResult<int>> GetUserLevel(int userId)
+        {
+            try
+            {
+                int level = await _userRepository.GetUserLevelAsync(userId);
+                return Ok(level);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+        }
 
 
 

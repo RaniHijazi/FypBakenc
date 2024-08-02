@@ -15,5 +15,7 @@ namespace Fyp.Models
         public int? CommentId { get; set; }
         [JsonIgnore]
         public Comment Comment { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

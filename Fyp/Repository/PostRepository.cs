@@ -19,46 +19,70 @@ namespace Fyp.Repository
             _hubContext = hubContext;
         }
 
-        public async Task CreatePrePost(int user_id,int precommunity_id,string? Description,IFormFile? image)
+        public async Task CreatePrePost(int user_id, int precommunity_id, string? Description, IFormFile? image)
         {
-            var user=await _context.users.FindAsync(user_id);
-            var precommunityId=await _context.communities.FindAsync(precommunity_id);
+            var user = await _context.users.FindAsync(user_id);
+            var precommunityId = await _context.communities.FindAsync(precommunity_id);
 
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");
-
             }
 
-            if (precommunityId==null)
+            if (precommunityId == null)
             {
                 throw new InvalidOperationException("Community not found");
-
             }
+
             string imageUrl = null;
 
             if (image != null)
             {
-                
                 imageUrl = await _blobStorageService.UploadImageAsync(image);
             }
 
             var prepost = new Post
             {
-                Description=Description,
-                ImageUrl=imageUrl,
-                LikesCount=0,
-                CommentsCount=0,
-                ShareCount=0,
-                Timestamp= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                UserId=user_id,
-                CommunityId=precommunity_id
+                Description = Description,
+                ImageUrl = imageUrl,
+                LikesCount = 0,
+                CommentsCount = 0,
+                ShareCount = 0,
+                Timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                UserId = user_id,
+                CommunityId = precommunity_id
             };
 
-             _context.posts.Add(prepost);
-            await _context.SaveChangesAsync();
+            _context.posts.Add(prepost);
 
+            if (user.LastPostPointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var userPosts = await _context.posts
+                    .Where(l => l.UserId == user_id)
+                    .ToListAsync();
+
+                var postsCount = userPosts
+                    .Count(l => DateTime.TryParse(l.Timestamp, out DateTime parsedDate) && parsedDate >= today);
+
+                if (postsCount >= 1)
+                {
+                    user.LastPostPointsAwarded = DateTime.Today;
+                    user.points += 20;
+
+                    if (user.points >= 1000)
+                    {
+                        user.Level += 1;
+                        user.points = 0;
+                    }
+
+                    _context.users.Update(user);
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
+
 
         public async Task CreatePreSubPosts(int user_id, int precommunity_id, int presubcommunity_id, string? Description, IFormFile? image)
         {
@@ -102,6 +126,30 @@ namespace Fyp.Repository
             };
 
             _context.posts.Add(prepost);
+            if (user.LastPostPointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var userPosts = await _context.posts
+                    .Where(l => l.UserId == user_id)
+                    .ToListAsync();
+
+                var postsCount = userPosts
+                    .Count(l => DateTime.TryParse(l.Timestamp, out DateTime parsedDate) && parsedDate >= today);
+
+                if (postsCount >= 5)
+                {
+                    user.LastPostPointsAwarded = DateTime.Today;
+                    user.points += 20;
+
+                    if (user.points >= 1000)
+                    {
+                        user.Level += 1;
+                        user.points = 0;
+                    }
+
+                    _context.users.Update(user);
+                }
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -197,6 +245,12 @@ namespace Fyp.Repository
                 throw new InvalidOperationException("Post not found");
             }
 
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Id == user_id);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
             post.LikesCount += 1;
 
             var like = new Like
@@ -206,12 +260,31 @@ namespace Fyp.Repository
             };
 
             _context.likes.Add(like);
+
+
+            if (user.LastLikePointsAwarded != DateTime.Today)
+            {
+                var likesCount = await _context.likes.CountAsync(l => l.UserId == user_id && l.CreatedAt >= DateTime.Today);
+
+                if (likesCount >= 5)
+                {
+                    user.LastLikePointsAwarded = DateTime.Today;
+                    user.points += 20;
+
+                    if (user.points >= 1000)
+                    {
+                        user.Level += 1;
+                        user.points = 0;
+                    }
+
+                    _context.users.Update(user);
+                }
+            }
+
             await _context.SaveChangesAsync();
 
-           
             Console.WriteLine($"Post liked by user {user_id}. Sending notification to user {post.UserId}.");
 
-          
             var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == post.UserId.ToString()).Select(kvp => kvp.Key).ToList();
             if (connectionIds.Count > 0)
             {
@@ -227,6 +300,7 @@ namespace Fyp.Repository
                 Console.WriteLine($"User {post.UserId} is not connected.");
             }
         }
+
         public async Task DislikePost(int post_id, int user_id)
         {
             var like = await _context.likes.FirstOrDefaultAsync(l => l.PostId == post_id && l.UserId == user_id);
@@ -293,7 +367,7 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task CommentOnPost(int post_id,int user_id,CommentDto dto)
+        public async Task CommentOnPost(int post_id, int user_id, CommentDto dto)
         {
             var post = await _context.posts.FindAsync(post_id);
             if (post == null)
@@ -304,18 +378,50 @@ namespace Fyp.Repository
 
             var comment = new Comment
             {
-                Description=dto.Description,
-                ImageUrl=dto.ImageUrl,
-                LikesCount=0,
+                Description = dto.Description,
+                ImageUrl = dto.ImageUrl,
+                LikesCount = 0,
                 PostId = post_id,
                 UserId = user_id,
-                time= DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
             _context.comments.Add(comment);
-            await _context.SaveChangesAsync();
 
+            var user = await _context.users.FirstOrDefaultAsync(u => u.Id == user_id);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+
+            if (user.LastCmntPointsAwarded != DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var userComments = await _context.comments
+                    .Where(l => l.UserId == user_id)
+                    .ToListAsync();
+
+                var CmntsCount = userComments
+                    .Count(l => DateTime.TryParse(l.time, out DateTime parsedDate) && parsedDate >= today);
+
+                if (CmntsCount >= 5)
+                {
+                    user.LastCmntPointsAwarded = DateTime.Today;
+                    user.points += 20;
+
+                    if (user.points >= 1000)
+                    {
+                        user.Level += 1;
+                        user.points = 0;
+                    }
+
+                    _context.users.Update(user);
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
+
 
         public async Task DeleteComment(int comment_id)
         {
