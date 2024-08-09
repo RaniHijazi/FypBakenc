@@ -195,29 +195,42 @@ namespace Fyp.Repository
             }
         }
 
-        public async Task<List<GetPostDto>> GetPrePosts(int PreCommunityId)
+        public async Task<List<GetPostDto>> GetPrePosts(int PreCommunityId, int currentUserId)
         {
+            
+            var followedUserIds = await _context.Follows
+                .Where(f => f.FollowerId == currentUserId)
+                .Select(f => f.FollowedId)
+                .ToListAsync();
+
             var posts = await _context.posts
-                .Where(p => p.CommunityId == PreCommunityId)
+                .Where(p => p.CommunityId == PreCommunityId && p.SubCommunityId == null) 
+                .Select(p => new
+                {
+                    Post = p,
+                    IsFollowedUser = followedUserIds.Contains(p.UserId) 
+                })
+                .OrderByDescending(p => p.Post.Timestamp) 
+                .ThenByDescending(p => p.IsFollowedUser) 
                 .Select(p => new GetPostDto
                 {
-                    Id=p.Id,
-                    Description = p.Description,
-                    ImageUrl = p.ImageUrl,
-                    LikesCount = p.LikesCount,
-                    CommentsCount = p.CommentsCount,
-                    ShareCount = p.ShareCount,
-                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
-                    UserFullName = p.User.FullName,
-                    UserProfileImageUrl = p.User.ProfilePath,
-                    UserId=p.UserId,
-                    Level=p.User.Level,
-
+                    Id = p.Post.Id,
+                    Description = p.Post.Description,
+                    ImageUrl = p.Post.ImageUrl,
+                    LikesCount = p.Post.LikesCount,
+                    CommentsCount = p.Post.CommentsCount,
+                    ShareCount = p.Post.ShareCount,
+                    Timestamp = CalculateTimeAgo(DateTime.Parse(p.Post.Timestamp)),
+                    UserFullName = p.Post.User.FullName,
+                    UserProfileImageUrl = p.Post.User.ProfilePath,
+                    UserId = p.Post.UserId,
+                    Level = p.Post.User.Level,
                 })
                 .ToListAsync();
 
             return posts;
         }
+
 
         public async Task<List<GetPostDto>> GetPreSubPosts( int subCommunityId)
         {

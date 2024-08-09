@@ -211,11 +211,11 @@ namespace Fyp.Controllers
         }
 
         [HttpGet("PrePosts")]
-        public async Task<IActionResult> GetPrePosts(int PreCommunityId)
+        public async Task<IActionResult> GetPrePosts(int PreCommunityId, int currentUserId)
         {
             try
             {
-                var posts = await _repository.GetPrePosts(PreCommunityId);
+                var posts = await _repository.GetPrePosts(PreCommunityId,currentUserId);
                 return Ok(posts);
             }
             catch (Exception ex)

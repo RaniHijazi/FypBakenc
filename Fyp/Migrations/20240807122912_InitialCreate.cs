@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Fyp.Migrations
 {
-    public partial class init : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -103,7 +103,8 @@ namespace Fyp.Migrations
                     Level = table.Column<int>(type: "int", nullable: false),
                     LastLikePointsAwarded = table.Column<DateTime>(type: "datetime2", nullable: true),
                     LastCmntPointsAwarded = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastPostPointsAwarded = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    LastPostPointsAwarded = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FcmToken = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -189,6 +190,27 @@ namespace Fyp.Migrations
                         principalTable: "users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Time = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -547,6 +569,11 @@ namespace Fyp.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_UserId",
+                table: "Notifications",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_posts_CommunityId",
                 table: "posts",
                 column: "CommunityId");
@@ -613,6 +640,9 @@ namespace Fyp.Migrations
 
             migrationBuilder.DropTable(
                 name: "messages");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
 
             migrationBuilder.DropTable(
                 name: "user_chat_rooms");
