@@ -38,7 +38,7 @@ namespace Fyp.Controllers
         {
             try
             {
-                await _repository.CreateSubCommunity(request.preId, request.name, request.Description, request.Image);
+                await _repository.CreateSubCommunity(request.preId,request.userId, request.name, request.Description, request.Image);
                 return Ok("Subcommunity created successfully.");
             }
             catch (Exception ex)
@@ -202,6 +202,7 @@ public class SaveRequest
     public IFormFile? Image { get; set; }
     public string name{ get; set; }
     public int preId { get; set; }
+    public int userId { get; set; }
     public string Description { get; set; }
 
 }

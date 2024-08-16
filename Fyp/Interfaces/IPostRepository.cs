@@ -26,5 +26,6 @@ namespace Fyp.Repository
         Task<List<GetPostDto>> GetUserPosts(int userId);
         Task<List<GetPostDto>> GetPostsOfAllSubcommunities(int preCommunityId);
         Task<List<Notification>> GetAllNotificationsForUser(int userId);
+        Task<bool> DeleteMyStory(int storyId);
     }
 }

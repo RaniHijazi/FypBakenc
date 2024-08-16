@@ -657,5 +657,77 @@ namespace Fyp.Repository
             _context.users.Update(user);
             await _context.SaveChangesAsync();
         }
+
+
+
+
+        public async Task<User> SignUpAdmin(SignUpAdminDto dto)
+        {
+            
+            string role = "Admin";
+            
+            if (await _context.users.AnyAsync(u => u.FullName == dto.FullName))
+            {
+                throw new InvalidOperationException("Username already exists");
+            }
+
+            if (await _context.users.AnyAsync(u => u.Email == dto.Email))
+            {
+                throw new InvalidOperationException("Email already used");
+            }
+
+            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            int CommunityId = 1;
+
+            var newUser = new User
+            {
+                FullName = dto.FullName,
+                Email = dto.Email,
+                Password = hashedPassword,
+                Gender = "Gender",
+                Age = 20,
+                JoinDate = DateTime.Now,
+                Role = role,
+                CommunityId = CommunityId,
+                ProfilePath = "https://ranistoragefyp.blob.core.windows.net/blobfyp/depositphotos_134255634-stock-illustration-avatar-icon-male-profile-gray.jpg"
+            };
+
+            _context.users.Add(newUser);
+            await _context.SaveChangesAsync();
+
+
+            return newUser;
+        }
+
+
+
+        public async Task<User> SignInAdmin(SignInDto dto)
+        {
+            var user = await _context.users.FirstOrDefaultAsync(u => u.FullName == dto.FullName);
+
+            if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+            {
+                throw new InvalidOperationException("Invalid username or password");
+            }
+
+            if (user.Role != "Admin")
+            {
+                throw new InvalidOperationException("Error sign in, You are not an Admin");
+            }
+
+            return user;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

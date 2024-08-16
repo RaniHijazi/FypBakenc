@@ -698,14 +698,38 @@ namespace Fyp.Repository
                     ShareCount = p.ShareCount,
                     Timestamp = CalculateTimeAgo(DateTime.Parse(p.Timestamp)),
                     UserFullName = p.User.FullName,
-                    UserProfileImageUrl = p.User.ProfilePath
+                    UserProfileImageUrl = p.User.ProfilePath,
+                    UserId=p.UserId,
+                    
                 })
                 .ToListAsync();
 
             return posts;
 
         }
+    
+
+    public async Task<bool> DeleteMyStory(int storyId)
+    {
+        
+            var story = await _context.stories.FindAsync(storyId);
+            if (story == null)
+            {
+                return false; 
+            }
+
+            _context.stories.Remove(story);
+            await _context.SaveChangesAsync();
+           return true; 
+        }
     }
+   
+
+
+
+
+
+
 
 
 

@@ -11,13 +11,15 @@ public class ChatHub : Hub
     private readonly IMessageRepository _messageRepository;
     private readonly IUserRepository _userRepository;
     private readonly DataContext _context;
+    private readonly IFcmService _fcmService;
     public static ConcurrentDictionary<string, string> ConnectedUsers = new ConcurrentDictionary<string, string>();
 
-    public ChatHub(IMessageRepository messageRepository, IUserRepository userRepository, DataContext context)
+    public ChatHub(IMessageRepository messageRepository, IUserRepository userRepository, DataContext context,IFcmService fcmService)
     {
         _messageRepository = messageRepository;
         _userRepository = userRepository;
         _context = context;
+        _fcmService = fcmService;
     }
 
     public async Task SendMessage(int senderId, int recipientId, string messageContent)
@@ -50,7 +52,6 @@ public class ChatHub : Hub
             Console.WriteLine($"SendMessage: Recipient {recipientId} is not connected.");
         }
 
-        // Optionally, send the message to the sender's own connection as well
         if (senderConnectionIds.Count > 0)
         {
             foreach (var connectionId in senderConnectionIds)
@@ -58,9 +59,10 @@ public class ChatHub : Hub
                 Console.WriteLine($"SendMessage: Sending message confirmation to sender connection ID {connectionId}.");
                 await Clients.Client(connectionId).SendAsync("ReceiveMessage", senderId, recipientId, messageContent, DateTime.UtcNow);
             }
+
         }
 
-        // Save the message to the database
+
         var message = new Message
         {
             SenderId = senderId,
@@ -71,9 +73,48 @@ public class ChatHub : Hub
 
         await _messageRepository.AddMessage(message);
         Console.WriteLine($"SendMessage: Message saved to database from {senderId} to {recipientId}.");
+
+
+
+        var notification = new Fyp.Models.Notification
+        {
+            UserId = recipientId,
+            Content = $"{recipient.FullName} send a message",
+            Time = DateTime.Now,
+        };
+
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+
+
+
+
+        var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == recipientId.ToString()).Select(kvp => kvp.Key).ToList();
+        if (connectionIds.Count > 0)
+        {
+            foreach (var connectionId in connectionIds)
+            {
+                Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                await Clients.Client(connectionId).SendAsync("ReceiveNotification", $"{recipient.FullName} send you a message ");
+            }
+            Console.WriteLine($"Notification sent to user {recipient.FullName}.");
+        }
+        else
+        {
+            Console.WriteLine($"User {recipientId} is not connected.");
+        }
+
+
+        if (!string.IsNullOrEmpty(recipient.FcmToken))
+        {
+            await _fcmService.SendNotificationAsync(recipient.FcmToken, "Message", $"{recipient.FullName} send you a message");
+        }
+
+
+
+
     }
-
-
 
     public async Task SendNotification(int recipientId, string messageContent)
     {

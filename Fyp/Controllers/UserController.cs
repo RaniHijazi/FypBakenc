@@ -90,6 +90,26 @@ namespace Fyp.Controllers
             }
         }
 
+        [HttpPost("signupAdmin")]
+        public async Task<IActionResult> SignUpAdmin([FromBody] SignUpAdminDto signUpDto)
+        {
+            try
+            {
+                var newUser = await _userRepository.SignUpAdmin(signUpDto);
+                var token = await CreateToken(newUser);
+                return Ok(new { newUser, token });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return StatusCode(500, "An error occurred while processing the request");
+            }
+        }
+
         [HttpGet("{userId}")]
         public async Task<ActionResult<User>> GetUserById(int userId)
         {
@@ -113,6 +133,25 @@ namespace Fyp.Controllers
             try
             {
                 var user = await _userRepository.SignIn(signInDto);
+                var token = await CreateToken(user);
+                return Ok(new { user, token });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An unexpected error occurred" });
+            }
+        }
+
+        [HttpPost("signinAdmin")]
+        public async Task<IActionResult> SignInAdmin([FromBody] SignInDto signInDto)
+        {
+            try
+            {
+                var user = await _userRepository.SignInAdmin(signInDto);
                 var token = await CreateToken(user);
                 return Ok(new { user, token });
             }

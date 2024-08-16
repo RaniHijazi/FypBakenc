@@ -46,7 +46,7 @@ namespace Fyp.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task CreateSubCommunity(int preId,string name,string description,IFormFile? image)
+        public async Task CreateSubCommunity(int preId,int userId,string name,string description,IFormFile? image)
         {
             var precommunity = await _context.communities.FirstOrDefaultAsync(pre => pre.Id == preId);
             if (precommunity == null)
@@ -71,10 +71,19 @@ namespace Fyp.Repository
                 Status="Inactive",
             
             };
-
-
-
             _context.sub_communities.Add(presub);
+            await _context.SaveChangesAsync();
+
+            var usersub = new UserSubCommunity
+            {
+                SubCommunityId=presub.ID,
+                UserId=userId,
+
+            };
+
+
+
+            _context.user_sub_communities.Add(usersub);
             await _context.SaveChangesAsync();
         }
 
@@ -295,9 +304,49 @@ namespace Fyp.Repository
             community.Status = community.Status == "Active" ? "Inactive" : "Active";
             await _context.SaveChangesAsync();
 
-            
+            var userSubCommunity = await _context.user_sub_communities
+                .FirstOrDefaultAsync(usc => usc.SubCommunityId == communityId);
+            int userId = userSubCommunity.UserId;
+
+            string notificationContent = community.Status == "Active"
+                ? $"Your community {community.Name} has been activated"
+                : $"Your community {community.Name} has been deactivated";
+
+            var notification = new Models.Notification
+            {
+                UserId = userId,
+                Content = notificationContent,
+                Time = DateTime.Now,
+            };
+            _context.Notifications.Add(notification);
+            await _context.SaveChangesAsync();
+
+            var user = await _context.users.FindAsync(userId);
+
+            var connectionIds = ChatHub.ConnectedUsers.Where(kvp => kvp.Value == userId.ToString()).Select(kvp => kvp.Key).ToList();
+            if (connectionIds.Count > 0)
+            {
+                foreach (var connectionId in connectionIds)
+                {
+                    Console.WriteLine($"Sending notification to connection ID {connectionId}");
+                    await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveNotification", notificationContent);
+                }
+                Console.WriteLine($"Notification sent to user {userId}.");
+            }
+            else
+            {
+                Console.WriteLine($"User {userId} is not connected.");
+            }
+
+            if (!string.IsNullOrEmpty(user.FcmToken))
+            {
+                string fcmTitle = community.Status == "Active" ? "Community Activated" : "Community Deactivated";
+                await _fcmService.SendNotificationAsync(user.FcmToken, fcmTitle, notificationContent);
+            }
+
             return community.Status;
         }
+
 
         public async Task<bool> IsUserMemberOfSubCommunity(int userId, int subCommunityId)
         {

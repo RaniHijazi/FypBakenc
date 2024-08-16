@@ -288,13 +288,13 @@ namespace Fyp.Controllers
                 var posts = await _repository.GetUserPosts(userId);
                 if (posts == null || posts.Count == 0)
                 {
-                    return NotFound("No posts found for the specified user.");
+                    return null ;
                 }
                 return Ok(posts);
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(ex.Message);
+                return null;
             }
             catch (Exception ex)
             {
@@ -314,6 +314,18 @@ namespace Fyp.Controllers
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
+        }
+
+        [HttpDelete("{storyId}")]
+        public async Task<IActionResult> DeleteStory(int storyId)
+        {
+            var result = await _repository.DeleteMyStory(storyId);
+            if (!result)
+            {
+                return NotFound(); 
+            }
+
+            return NoContent(); 
         }
 
         [HttpPost("sendTestNotification")]
