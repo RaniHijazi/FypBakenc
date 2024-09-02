@@ -304,7 +304,8 @@ namespace Fyp.Repository
                 Role = user.Role,
                 TotalFollowers = user.TotalFollowers,
                 TotalFollowing = user.TotalFollowing,
-                JoinDate = user.JoinDate
+                JoinDate = user.JoinDate,
+                Level=user.Level
 
             };
         }

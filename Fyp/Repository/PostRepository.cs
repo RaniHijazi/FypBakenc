@@ -612,7 +612,8 @@ namespace Fyp.Repository
                     UserName = comment.User.FullName,
                     UserProfilePath = comment.User.ProfilePath,
                     LikesCount = comment.LikesCount,
-                    time = CalculateTimeAgo(DateTime.Parse(comment.time))
+                    time = CalculateTimeAgo(DateTime.Parse(comment.time)),
+                    Level=comment.User.Level
                 })
                 .ToListAsync();
 

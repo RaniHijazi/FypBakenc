@@ -4,7 +4,11 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
+<<<<<<< Updated upstream
       "applicationUrl": "http://192.168.1.182:7210",
+=======
+      "applicationUrl": "http://172.30.0.139:7210",
+>>>>>>> Stashed changes
       "sslPort": 44369
     }
   },
@@ -14,7 +18,11 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
+<<<<<<< Updated upstream
       "applicationUrl": "http://192.168.1.182:7210",
+=======
+      "applicationUrl": "http://172.30.0.139:7210",
+>>>>>>> Stashed changes
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

@@ -10,6 +10,7 @@
         public int TotalFollowers { get; set; }
         public int TotalFollowing { get; set; }
         public DateTime JoinDate { get; set; }
+        public int Level { get; set; }
         
     }
 }
